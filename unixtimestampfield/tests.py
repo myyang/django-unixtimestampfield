@@ -82,7 +82,7 @@ class TimeStampFieldTest(TestCase):
 
     @override_settings(USE_TZ=False)
     def test_assignment_without_tz(self):
-        expected = timezone.datetime.utcfromtimestamp(3.0)
+        expected = timezone.datetime.fromtimestamp(3.0)
         t = ForTestModel.objects.create()
 
         pre_modified = t.modified
