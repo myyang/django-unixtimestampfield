@@ -5,6 +5,9 @@ from django.utils import timezone
 
 from .fields import UnixTimeStampField
 
+unix_0 = timezone.datetime.fromtimestamp(0.0)
+unix_0_utc = timezone.datetime.fromtimestamp(0.0, timezone.utc)
+
 
 class ForTestModel(models.Model):
 
@@ -13,6 +16,7 @@ class ForTestModel(models.Model):
     str_ini = UnixTimeStampField(default='0.0')
     float_ini = UnixTimeStampField(default=0.0)
     int_ini = UnixTimeStampField(default=0.0)
+    dt_ini = UnixTimeStampField(default=unix_0_utc)
 
 
 class TimeStampFieldTest(TestCase):
@@ -39,6 +43,7 @@ class TimeStampFieldTest(TestCase):
         t.str_ini = '3'
         t.float_ini = 3.0
         t.int_ini = 3
+        t.dt_ini = timezone.datetime.fromtimestamp(3.0, timezone.utc)
         t.save()
 
         t.refresh_from_db()
@@ -85,6 +90,7 @@ class TimeStampFieldTest(TestCase):
         t.str_ini = '3'
         t.float_ini = 3.0
         t.int_ini = 3
+        t.dt_ini = timezone.datetime.fromtimestamp(3.0)
         t.save()
 
         t.refresh_from_db()
