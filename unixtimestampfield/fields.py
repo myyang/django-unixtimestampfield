@@ -72,6 +72,22 @@ class TimestampPatchMixin(object):
             code="invalid_timestamp"
         )
 
+    def to_naive_datetime(self, value):
+        """
+        from value to datetime with tzinfo format (datetime.datetime instance)
+        """
+        if isinstance(value, str) or isinstance(value, int) or isinstance(value, float):
+            value = timezone.datetime.fromtimestamp(float(value))
+            return value
+
+        if isinstance(value, datetime.datetime):
+            return value
+
+        raise exceptions.ValidationError(
+            "Unable to convert value: '%s' to python data type" % value,
+            code="invalid_datetime"
+        )
+
     def to_utc_datetime(self, value):
         """
         from value to datetime with tzinfo format (datetime.datetime instance)
@@ -101,9 +117,12 @@ class TimestampPatchMixin(object):
     def to_datetime(self, value):
 
         if settings.USE_TZ:
-            return self.to_default_timezone_datetime(value)
-
-        return self.to_utc_datetime(value)
+            if settings.TIME_ZONE != 'UTC':
+                return self.to_default_timezone_datetime(value)
+            else:
+                return self.to_utc_datetime(value)
+        else:
+            return self.to_naive_datetime(value)
 
 
 class UnixTimeStampField(TimestampPatchMixin, Field):
