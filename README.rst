@@ -1,6 +1,11 @@
 django-unixtimestampfield
 ===========================
 
+.. image:: https://img.shields.io/travis/myyang/django-unixtimestampfield.svg
+         :target: https://img.shields.io/travis/myyang/django-unixtimestampfield
+
+
+
 Provide a custom field that is stored as float and used as datetime instance.
 
 * Database that supports **Float** type is compatible
@@ -12,7 +17,7 @@ Install
 
    pip install django-unixtimestampfield
 
-**!!! PS***: Not published to `PyPI`_ yet, future work... **!!!**
+**!!! PS**: Not published to `PyPI`_ yet, future work... **!!!**
 
 .. _`PyPI`: https://pypi.python.org/pypi
 
