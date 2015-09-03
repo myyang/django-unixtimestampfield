@@ -26,6 +26,7 @@ Members
 
 """
 
+import time
 import datetime
 
 from django.db.models import Field
@@ -37,6 +38,16 @@ from django.utils.translation import ugettext_lazy as _
 
 
 class TimestampPatchMixin(object):
+
+    def _datetime_to_timestamp(self, v):
+        """
+        Py2 doesn't supports timestamp()
+        """
+
+        if hasattr(v, 'timestamp'):
+            return v.timestamp()
+
+        return time.mktime(v.timetuple()) + v.microsecond * 0.00001
 
     def get_datetimenow(self):
         """
@@ -54,7 +65,7 @@ class TimestampPatchMixin(object):
         """
         get utc unix timestamp
         """
-        return timezone.datetime.utcnow().timestamp()
+        return self._datetime_to_timestamp(timezone.datetime.utcnow())
 
     def to_timestamp(self, value):
         """
@@ -65,7 +76,7 @@ class TimestampPatchMixin(object):
         if isinstance(value, datetime.datetime):
             if timezone.is_aware(value):
                 value = timezone.localtime(value, timezone.utc)
-            return value.timestamp()
+            return self._datetime_to_timestamp(value)
 
         raise exceptions.ValidationError(
             "Unable to convert value: '%s' to timestamp" % value,
