@@ -46,7 +46,10 @@ class TimeStampFieldTest(TestCase):
         t.dt_ini = timezone.datetime.fromtimestamp(3.0, timezone.utc)
         t.save()
 
-        t.refresh_from_db()
+        if hasattr(t, 'refresh_from_db'):
+            t.refresh_from_db()
+        else:
+            t = ForTestModel.objects.get(id=t.id)
 
         self.assertGreater(t.modified, pre_modified)
         self.assertEqual(t.str_ini, expected)
@@ -93,7 +96,10 @@ class TimeStampFieldTest(TestCase):
         t.dt_ini = timezone.datetime.fromtimestamp(3.0)
         t.save()
 
-        t.refresh_from_db()
+        if hasattr(t, 'refresh_from_db'):
+            t.refresh_from_db()
+        else:
+            t = ForTestModel.objects.get(id=t.id)
 
         self.assertGreater(t.modified, pre_modified)
         self.assertEqual(t.str_ini, expected)
