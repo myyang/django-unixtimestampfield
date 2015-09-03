@@ -2,8 +2,7 @@ django-unixtimestampfield
 ===========================
 
 .. image:: https://img.shields.io/travis/myyang/django-unixtimestampfield.svg
-         :target: https://img.shields.io/travis/myyang/django-unixtimestampfield
-
+         :target: https://travis-ci.org/myyang/django-unixtimestampfield
 
 
 Provide a custom field that is stored as float and used as datetime instance.
