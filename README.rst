@@ -96,4 +96,5 @@ Example:
 Version
 -------
 
+*v0.2* -- Handle formfield and add options while init
 *v0.1* -- Added UnixTimeStampField 
