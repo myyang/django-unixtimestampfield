@@ -7,7 +7,17 @@ django-unixtimestampfield
 
 Provide a custom field that is stored as float and used as datetime instance.
 
+
+Requirements
+------------
+
 * Database that supports **Float** type is compatible
+* Python2.7, Python3.4 with Django >= 1.8
+  (Since the 1.8 is LTS version, I choose to supports from 1.8. 
+  `SubClassing will be removed in 1.10`_ also, so...follow the trends?
+  If you could help version < 1.7, it's welcom :D )
+
+.. _`SubClassing will be removed in 1.10`: https://github.com/django/django/blob/1.8/django/db/models/fields/subclassing.py#L21
 
 Install
 -------
