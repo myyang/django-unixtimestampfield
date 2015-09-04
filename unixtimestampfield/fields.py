@@ -147,9 +147,9 @@ class UnixTimeStampField(TimestampPatchMixin, Field):
     description = _("Unix POSIX timestamp")
 
     def __init__(self, verbose_name=None, name=None, auto_now=False,
-                 auto_now_add=False, round_to=6, use_float=False, **kwargs):
+                 auto_now_add=False, round_to=6, use_numeric=False, **kwargs):
         self.auto_now, self.auto_now_add = auto_now, auto_now_add
-        self.round_to, self.use_float = round_to, use_float
+        self.round_to, self.use_numeric = round_to, use_numeric
         if auto_now or auto_now_add:
             kwargs['editable'] = False
             kwargs['blank'] = True
@@ -215,7 +215,7 @@ class UnixTimeStampField(TimestampPatchMixin, Field):
 
     def to_datetime(self, value):
 
-        if self.use_float:
+        if self.use_numeric:
             return self.to_timestamp(value)
         return super(UnixTimeStampField, self).to_datetime(value)
 
