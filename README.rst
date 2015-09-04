@@ -75,6 +75,24 @@ Field Options
 * **round_to**: percision (*num*)  of round(value, *num*), default: 6
 * **use_float**: set as True that instance attribute would be float, default: False
 
+Django settings
+~~~~~~~~~~~~~~~
+
+
+If `USE_TZ` is set to `False`, there is no **tzinfo** while accessing attribute
+
+Example:
+
+.. code-block:: python
+
+    # In settings.py
+   USE_TZ = False
+
+   >>> m = modelA.objects.create()
+    >>> m.created
+    datetime.datetime(2015, 9, 2, 10, 41, 41, 937257)
+
+
 Version
 -------
 
