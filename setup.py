@@ -1,5 +1,5 @@
-from distutils.core import setup
 from distutils.core import Command
+from setuptools import setup
 
 """
 Copied and stole from https://github.com/bradjasper/django-jsonfield/blob/master/setup.py
@@ -36,23 +36,19 @@ class TestCommand(Command):
             django.setup()
         call_command('test', 'unixtimestampfield')
 
-setup(name='django_unixtimestampfield',
-      version='0.1',
+setup(name='django-unixtimestampfield',
+      version='0.2.0',
       packages=['unixtimestampfield'],
       license='MIT',
-      include_package_data=True,
       author='Garfield.Yang',
       author_email='ymy1019@gmail.com',
       url='https://github.com/myyang/django-unixtimestampfield',
       description='Unix timestamp (POSIX type) field',
       long_description=open("README.rst").read(),
-      install_requires=['Django >= 1.8'],
-      tests_require=['Django >= 1.8'],
       cmdclass={'test': TestCommand},
+      install_requires=['django>=1.8',],
       classifiers=[
-          'Environment :: Web Environment',
           'Intended Audience :: Developers',
-          'Operating System :: OS Independent',
           'Programming Language :: Python',
           'Programming Language :: Python :: 2.7',
           'Programming Language :: Python :: 3.4',

@@ -26,11 +26,6 @@ Install
 
    pip install django-unixtimestampfield
 
-**!!! PS**: Not published to `PyPI`_ yet, future work... **!!!**
-
-.. _`PyPI`: https://pypi.python.org/pypi
-
-
 Usage
 -----
 
