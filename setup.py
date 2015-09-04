@@ -5,6 +5,11 @@ from distutils.core import Command
 Copied and stole from https://github.com/bradjasper/django-jsonfield/blob/master/setup.py
 """
 
+
+class DjangoVerionError(Exception):
+    pass
+
+
 class TestCommand(Command):
     user_options = []
 
@@ -24,7 +29,10 @@ class TestCommand(Command):
         from django.core.management import call_command
         import django
 
-        if django.VERSION[:2] >= (1, 7):
+        if django.VERSION[:2] < (1, 8):
+            raise DjangoVerionError("Django version should be at least 1.8")
+
+        if django.VERSION[:2] >= (1, 8):
             django.setup()
         call_command('test', 'unixtimestampfield')
 
@@ -38,8 +46,8 @@ setup(name='django_unixtimestampfield',
       url='https://github.com/myyang/django-unixtimestampfield',
       description='Unix timestamp (POSIX type) field',
       long_description=open("README.rst").read(),
-      install_requires=['Django >= 1.6'],
-      tests_require=['Django >= 1.6'],
+      install_requires=['Django >= 1.8'],
+      tests_require=['Django >= 1.8'],
       cmdclass={'test': TestCommand},
       classifiers=[
           'Environment :: Web Environment',
