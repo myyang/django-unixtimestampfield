@@ -33,6 +33,7 @@ from django.db.models import Field
 from django.utils import timezone
 from django.core import exceptions
 from django.conf import settings
+from django.forms import fields
 
 from django.utils.translation import ugettext_lazy as _
 
@@ -218,7 +219,7 @@ class UnixTimeStampField(TimestampPatchMixin, Field):
             return self.to_timestamp(value)
         return super(UnixTimeStampField, self).to_datetime(value)
 
-    # def formfield(self, **kwargs):
-    #     defaults = {'form_class': forms.DateField}
-    #     defaults.update(kwargs)
-    #     return super(DateField, self).formfield(**defaults)
+    def formfield(self, **kwargs):
+        defaults = {'form_class': fields.FloatField}
+        defaults.update(kwargs)
+        return super(UnixTimeStampField, self).formfield(**defaults)
