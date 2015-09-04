@@ -1,0 +1,17 @@
+language: python
+python:
+  - 2.7
+  - 3.4
+
+env:
+  - DJANGO='django>=1.8,<1.9'
+
+install:
+  - pip install -q $DJANGO pytz
+
+script: python setup.py test
+
+notifications:
+  email:
+    recipients:
+      - ymy1019@gmail.com
