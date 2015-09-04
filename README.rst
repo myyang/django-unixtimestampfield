@@ -14,8 +14,8 @@ Requirements
 * Database that supports **Float** type is compatible
 * Python2.7, Python3.4 with Django >= 1.8
   (Since the 1.8 is LTS version, I choose to supports from 1.8. 
-  `SubClassing will be removed in 1.10`_ also, so...follow the trends?
-  If you could help version < 1.7, it's welcom :D )
+  `SubClassing will be removed in 1.10`_ , so I handle *from_db_value()* only.
+  If you could help version <= 1.7, welcome~~ :D )
 
 .. _`SubClassing will be removed in 1.10`: https://github.com/django/django/blob/1.8/django/db/models/fields/subclassing.py#L21
 
@@ -72,8 +72,8 @@ Field Options
 
 * **auto_now**: Set as True to refresh while saving, just like DatetimeField
 * **auto_now_add**: set as True to add while creating, just like DatetimeField
-* **round_to**: percision (*num*)  of round(value, *num*), default: 6
-* **use_float**: set as True that instance attribute would be float, default: False
+* **round_to**: percision (*num*)  of round(value, *num*), default: **6**
+* **use_float**: set as True that instance attribute would be float, default: **False**
 
 Django settings
 ~~~~~~~~~~~~~~~
@@ -97,4 +97,5 @@ Version
 -------
 
 *v0.2* -- Handle formfield and add options while init
+
 *v0.1* -- Added UnixTimeStampField 
