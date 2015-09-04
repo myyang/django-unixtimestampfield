@@ -67,7 +67,13 @@ Behavior exmpale:
     >>> m.int_ini
     datetime.datetime(1970, 1, 1, 0, 3, tzinfo=<UTC>)
 
+Field Options
+~~~~~~~~~~~~~
 
+* **auto_now**: Set as True to refresh while saving, just like DatetimeField
+* **auto_now_add**: set as True to add while creating, just like DatetimeField
+* **round_to**: percision (*num*)  of round(value, *num*), default: 6
+* **use_float**: set as True that instance attribute would be float, default: False
 
 Version
 -------

@@ -18,6 +18,9 @@ class ForTestModel(models.Model):
     int_ini = UnixTimeStampField(default=0.0)
     dt_ini = UnixTimeStampField(default=unix_0_utc)
 
+    use_float_field = UnixTimeStampField(use_float=True, default=0.0)
+    round_3_field = UnixTimeStampField(use_float=True, round_to=3, default=0.0)
+
 
 class TimeStampFieldTest(TestCase):
 
@@ -44,6 +47,8 @@ class TimeStampFieldTest(TestCase):
         t.float_ini = 3.0
         t.int_ini = 3
         t.dt_ini = timezone.datetime.fromtimestamp(3.0, timezone.utc)
+        t.use_float_field = 3.1111116
+        t.round_3_field = 3.1116
         t.save()
 
         if hasattr(t, 'refresh_from_db'):
@@ -55,6 +60,8 @@ class TimeStampFieldTest(TestCase):
         self.assertEqual(t.str_ini, expected)
         self.assertEqual(t.float_ini, expected)
         self.assertEqual(t.int_ini, expected)
+        self.assertEqual(t.use_float_field, 3.111112)
+        self.assertEqual(t.round_3_field, 3.112)
 
     @override_settings(USE_TZ=True, TIME_ZONE='Asia/Taipei')
     def test_init_with_different_tz(self):
