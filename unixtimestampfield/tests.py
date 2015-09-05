@@ -4,10 +4,13 @@ from django.db import models
 from django.utils import timezone
 from django import forms
 
-from .fields import UnixTimeStampField
+from .fields import UnixTimeStampField, OrdinalField
 
 unix_0 = timezone.datetime.fromtimestamp(0.0)
 unix_0_utc = timezone.datetime.fromtimestamp(0.0, timezone.utc)
+
+ordinal_1 = timezone.datetime.fromordinal(1)
+ordinal_1_utc = timezone.make_aware(timezone.datetime.fromordinal(1), timezone.utc)
 
 
 class ForTestModel(models.Model):
@@ -188,3 +191,104 @@ class FormFieldTest(TestCase):
         errors = {'str_ini': [u'Enter a number.'], }
         self.assertDictEqual(tform.errors, errors)
         self.assertEqual(tform.error_class, forms.utils.ErrorList)
+
+
+class ForOrdinalTestModel(models.Model):
+
+    created = OrdinalField(auto_now_add=True)
+    modified = OrdinalField(auto_now=True)
+    str_ini = OrdinalField(default='1')
+    float_ini = OrdinalField(default=1)
+    int_ini = OrdinalField(default=1)
+    dt_ini = OrdinalField(default=ordinal_1)
+
+
+class OrdinalFieldTest(TestCase):
+
+    @override_settings(USE_TZ=True, TIME_ZONE='UTC')
+    def test_init_with_utc(self):
+        today = timezone.make_aware(
+            timezone.datetime.fromordinal(timezone.now().toordinal()), timezone.utc)
+        expected = timezone.make_aware(timezone.datetime.fromordinal(1), timezone.utc)
+        m = ForOrdinalTestModel.objects.create()
+
+        self.assertEqual(m.created, today)
+        self.assertEqual(m.modified, today)
+        self.assertEqual(m.str_ini, expected)
+        self.assertEqual(m.float_ini, expected)
+        self.assertEqual(m.int_ini, expected)
+        self.assertEqual(m.dt_ini, expected)
+
+    @override_settings(USE_TZ=True, TIME_ZONE='UTC')
+    def test_assignment_with_tz(self):
+        today = timezone.make_aware(
+            timezone.datetime.fromordinal(timezone.now().toordinal()), timezone.utc)
+        expected = timezone.make_aware(timezone.datetime.fromordinal(3), timezone.utc)
+        m = ForOrdinalTestModel.objects.create()
+
+        m.str_ini = '3'
+        m.float_ini = 3.0
+        m.int_ini = 3
+        m.dt_ini = timezone.make_aware(timezone.datetime.fromordinal(3), timezone.utc)
+        m.save()
+
+        if hasattr(m, 'refresh_from_db'):
+            m.refresh_from_db()
+        else:
+            m = ForTestModel.objects.get(id=m.id)
+
+        self.assertEqual(m.modified, today)
+        self.assertEqual(m.str_ini, expected)
+        self.assertEqual(m.float_ini, expected)
+        self.assertEqual(m.int_ini, expected)
+
+    @override_settings(USE_TZ=True, TIME_ZONE='Asia/Taipei')
+    def test_init_with_different_tz(self):
+        today = timezone.make_aware(
+            timezone.datetime.fromordinal(timezone.now().toordinal()), timezone.utc)
+        expected = timezone.localtime(
+            timezone.make_aware(timezone.datetime.fromordinal(1), timezone.utc),
+            timezone.pytz.timezone('Asia/Taipei')
+        )
+        m = ForOrdinalTestModel.objects.create()
+
+        self.assertEqual(m.created, today)
+        self.assertEqual(m.modified, today)
+        self.assertEqual(m.str_ini, expected)
+        self.assertEqual(m.float_ini, expected)
+        self.assertEqual(m.int_ini, expected)
+
+    @override_settings(USE_TZ=False)
+    def test_init_without_tz(self):
+        today = timezone.datetime.fromordinal(timezone.now().toordinal())
+        expected = timezone.datetime.fromordinal(1)
+        m = ForOrdinalTestModel.objects.create()
+
+        self.assertEqual(m.created, today)
+        self.assertEqual(m.modified, today)
+        self.assertEqual(m.str_ini, expected)
+        self.assertEqual(m.float_ini, expected)
+        self.assertEqual(m.int_ini, expected)
+
+    @override_settings(USE_TZ=False)
+    def test_assignment_without_tz(self):
+
+        today = timezone.datetime.fromordinal(timezone.now().toordinal())
+        expected = timezone.datetime.fromordinal(3)
+        m = ForOrdinalTestModel.objects.create()
+
+        m.str_ini = '3'
+        m.float_ini = 3.0
+        m.int_ini = 3
+        m.dt_ini = timezone.datetime.fromordinal(3)
+        m.save()
+
+        if hasattr(m, 'refresh_from_db'):
+            m.refresh_from_db()
+        else:
+            m = ForTestModel.objects.get(id=m.id)
+
+        self.assertEqual(m.modified, today)
+        self.assertEqual(m.str_ini, expected)
+        self.assertEqual(m.float_ini, expected)
+        self.assertEqual(m.int_ini, expected)
