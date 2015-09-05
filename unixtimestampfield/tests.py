@@ -4,10 +4,13 @@ from django.db import models
 from django.utils import timezone
 from django import forms
 
-from .fields import UnixTimeStampField
+from .fields import UnixTimeStampField, OrdinalField
 
 unix_0 = timezone.datetime.fromtimestamp(0.0)
 unix_0_utc = timezone.datetime.fromtimestamp(0.0, timezone.utc)
+
+ordinal_1 = timezone.datetime.fromordinal(1)
+ordinal_1_utc = timezone.make_aware(timezone.datetime.fromordinal(1), timezone.utc)
 
 
 class ForTestModel(models.Model):
@@ -19,8 +22,8 @@ class ForTestModel(models.Model):
     int_ini = UnixTimeStampField(default=0.0)
     dt_ini = UnixTimeStampField(default=unix_0_utc)
 
-    use_float_field = UnixTimeStampField(use_float=True, default=0.0)
-    round_3_field = UnixTimeStampField(use_float=True, round_to=3, default=0.0)
+    use_numeric_field = UnixTimeStampField(use_numeric=True, default=0.0)
+    round_3_field = UnixTimeStampField(use_numeric=True, round_to=3, default=0.0)
 
 
 class TimeStampFieldTest(TestCase):
@@ -48,7 +51,7 @@ class TimeStampFieldTest(TestCase):
         t.float_ini = 3.0
         t.int_ini = 3
         t.dt_ini = timezone.datetime.fromtimestamp(3.0, timezone.utc)
-        t.use_float_field = 3.1111116
+        t.use_numeric_field = 3.1111116
         t.round_3_field = 3.1116
         t.save()
 
@@ -61,7 +64,7 @@ class TimeStampFieldTest(TestCase):
         self.assertEqual(t.str_ini, expected)
         self.assertEqual(t.float_ini, expected)
         self.assertEqual(t.int_ini, expected)
-        self.assertEqual(t.use_float_field, 3.111112)
+        self.assertEqual(t.use_numeric_field, 3.111112)
         self.assertEqual(t.round_3_field, 3.112)
 
     @override_settings(USE_TZ=True, TIME_ZONE='Asia/Taipei')
@@ -118,7 +121,8 @@ class TimeStampFieldTest(TestCase):
 class ForTestModelForm(forms.ModelForm):
     class Meta:
         model = ForTestModel
-        fields = ['str_ini', 'float_ini', 'int_ini', 'dt_ini', 'use_float_field', 'round_3_field']
+        fields = ['str_ini', 'float_ini', 'int_ini', 'dt_ini',
+                  'use_numeric_field', 'round_3_field']
 
 
 class FormFieldTest(TestCase):
@@ -129,7 +133,7 @@ class FormFieldTest(TestCase):
             'float_ini': 3.0,
             'int_ini': 3,
             'dt_ini': 3,
-            'use_float_field': 0,
+            'use_numeric_field': 0,
             'round_3_field': 0,
         }
 
@@ -145,11 +149,11 @@ class FormFieldTest(TestCase):
 
         self.assertFalse(tform.is_valid())
         errors = {'dt_ini': [u'This field is required.'],
-                   'float_ini': [u'This field is required.'],
-                   'int_ini': [u'This field is required.'],
-                   'round_3_field': [u'This field is required.'],
-                   'str_ini': [u'This field is required.'],
-                   'use_float_field': [u'This field is required.']}
+                  'float_ini': [u'This field is required.'],
+                  'int_ini': [u'This field is required.'],
+                  'round_3_field': [u'This field is required.'],
+                  'str_ini': [u'This field is required.'],
+                  'use_numeric_field': [u'This field is required.']}
         self.assertDictEqual(tform.errors, errors)
         self.assertEqual(tform.error_class, forms.utils.ErrorList)
 
@@ -165,11 +169,10 @@ class FormFieldTest(TestCase):
 
         self.assertFalse(tform.is_valid())
         errors = {'dt_ini': [u'This field is required.'],
-                   'float_ini': [u'This field is required.'],
-                   'use_float_field': [u'This field is required.']}
+                  'float_ini': [u'This field is required.'],
+                  'use_numeric_field': [u'This field is required.']}
         self.assertDictEqual(tform.errors, errors)
         self.assertEqual(tform.error_class, forms.utils.ErrorList)
-
 
     def test_invalid_data(self):
 
@@ -178,7 +181,7 @@ class FormFieldTest(TestCase):
             'float_ini': 3.0,
             'int_ini': 3,
             'dt_ini': 3,
-            'use_float_field': 0,
+            'use_numeric_field': 0,
             'round_3_field': 0,
         }
 
@@ -188,3 +191,104 @@ class FormFieldTest(TestCase):
         errors = {'str_ini': [u'Enter a number.'], }
         self.assertDictEqual(tform.errors, errors)
         self.assertEqual(tform.error_class, forms.utils.ErrorList)
+
+
+class ForOrdinalTestModel(models.Model):
+
+    created = OrdinalField(auto_now_add=True)
+    modified = OrdinalField(auto_now=True)
+    str_ini = OrdinalField(default='1')
+    float_ini = OrdinalField(default=1)
+    int_ini = OrdinalField(default=1)
+    dt_ini = OrdinalField(default=ordinal_1)
+
+
+class OrdinalFieldTest(TestCase):
+
+    @override_settings(USE_TZ=True, TIME_ZONE='UTC')
+    def test_init_with_utc(self):
+        today = timezone.make_aware(
+            timezone.datetime.fromordinal(timezone.now().toordinal()), timezone.utc)
+        expected = timezone.make_aware(timezone.datetime.fromordinal(1), timezone.utc)
+        m = ForOrdinalTestModel.objects.create()
+
+        self.assertEqual(m.created, today)
+        self.assertEqual(m.modified, today)
+        self.assertEqual(m.str_ini, expected)
+        self.assertEqual(m.float_ini, expected)
+        self.assertEqual(m.int_ini, expected)
+        self.assertEqual(m.dt_ini, expected)
+
+    @override_settings(USE_TZ=True, TIME_ZONE='UTC')
+    def test_assignment_with_tz(self):
+        today = timezone.make_aware(
+            timezone.datetime.fromordinal(timezone.now().toordinal()), timezone.utc)
+        expected = timezone.make_aware(timezone.datetime.fromordinal(3), timezone.utc)
+        m = ForOrdinalTestModel.objects.create()
+
+        m.str_ini = '3'
+        m.float_ini = 3.0
+        m.int_ini = 3
+        m.dt_ini = timezone.make_aware(timezone.datetime.fromordinal(3), timezone.utc)
+        m.save()
+
+        if hasattr(m, 'refresh_from_db'):
+            m.refresh_from_db()
+        else:
+            m = ForTestModel.objects.get(id=m.id)
+
+        self.assertEqual(m.modified, today)
+        self.assertEqual(m.str_ini, expected)
+        self.assertEqual(m.float_ini, expected)
+        self.assertEqual(m.int_ini, expected)
+
+    @override_settings(USE_TZ=True, TIME_ZONE='Asia/Taipei')
+    def test_init_with_different_tz(self):
+        today = timezone.make_aware(
+            timezone.datetime.fromordinal(timezone.now().toordinal()), timezone.utc)
+        expected = timezone.localtime(
+            timezone.make_aware(timezone.datetime.fromordinal(1), timezone.utc),
+            timezone.pytz.timezone('Asia/Taipei')
+        )
+        m = ForOrdinalTestModel.objects.create()
+
+        self.assertEqual(m.created, today)
+        self.assertEqual(m.modified, today)
+        self.assertEqual(m.str_ini, expected)
+        self.assertEqual(m.float_ini, expected)
+        self.assertEqual(m.int_ini, expected)
+
+    @override_settings(USE_TZ=False)
+    def test_init_without_tz(self):
+        today = timezone.datetime.fromordinal(timezone.now().toordinal())
+        expected = timezone.datetime.fromordinal(1)
+        m = ForOrdinalTestModel.objects.create()
+
+        self.assertEqual(m.created, today)
+        self.assertEqual(m.modified, today)
+        self.assertEqual(m.str_ini, expected)
+        self.assertEqual(m.float_ini, expected)
+        self.assertEqual(m.int_ini, expected)
+
+    @override_settings(USE_TZ=False)
+    def test_assignment_without_tz(self):
+
+        today = timezone.datetime.fromordinal(timezone.now().toordinal())
+        expected = timezone.datetime.fromordinal(3)
+        m = ForOrdinalTestModel.objects.create()
+
+        m.str_ini = '3'
+        m.float_ini = 3.0
+        m.int_ini = 3
+        m.dt_ini = timezone.datetime.fromordinal(3)
+        m.save()
+
+        if hasattr(m, 'refresh_from_db'):
+            m.refresh_from_db()
+        else:
+            m = ForTestModel.objects.get(id=m.id)
+
+        self.assertEqual(m.modified, today)
+        self.assertEqual(m.str_ini, expected)
+        self.assertEqual(m.float_ini, expected)
+        self.assertEqual(m.int_ini, expected)

@@ -46,6 +46,7 @@ Used in model as:
         float_ini = UnixTimeStampField(default=0.0)
         int_ini = UnixTimeStampField(default=0.0)
         dt_ini = UnixTimeStampField(default=timezone.now)
+        num_field = UnixTimeStampField(use_numeric=True, default=0.0)
 
 
 Behavior exmpale:
@@ -61,6 +62,8 @@ Behavior exmpale:
     >>> m.save()
     >>> m.int_ini
     datetime.datetime(1970, 1, 1, 0, 3, tzinfo=<UTC>)
+    >>> m.num_field
+    0.0
 
 Field Options
 ~~~~~~~~~~~~~
@@ -68,7 +71,9 @@ Field Options
 * **auto_now**: Set as True to refresh while saving, just like DatetimeField
 * **auto_now_add**: set as True to add while creating, just like DatetimeField
 * **round_to**: percision (*num*)  of round(value, *num*), default: **6**
-* **use_float**: set as True that instance attribute would be float, default: **False**
+* **use_float**: **DEPRECATED in v0.3**, see use_numeric
+* **use_numeric**: set as True that instance attribute would be numeric, default as **False**
+
 
 Django settings
 ~~~~~~~~~~~~~~~
@@ -90,6 +95,8 @@ Example:
 
 Version
 -------
+
+*v0.3* -- Add ordinal time field and change field options **use_float** to **use_numeric**!!!
 
 *v0.2* -- Handle formfield and add options while init
 
