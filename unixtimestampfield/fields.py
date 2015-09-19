@@ -39,6 +39,8 @@ from django.forms import fields
 
 from django.utils.translation import ugettext_lazy as _
 
+from .submiddleware import field_value_middleware
+
 
 class TimestampPatchMixin(object):
 
@@ -178,11 +180,11 @@ class UnixTimeStampField(TimestampPatchMixin, Field):
             return value
         else:
             value = getattr(model_instance, self.attname)
-            setattr(model_instance, self.attname, self.to_datetime(value))
+            setattr(model_instance, self.attname, field_value_middleware(self, value))
             return value
 
     def to_python(self, value):
-        return self.to_datetime(value)
+        return field_value_middleware(self, value)
 
     def get_default(self):
         if self.auto_now or self.auto_now_add:
@@ -210,16 +212,10 @@ class UnixTimeStampField(TimestampPatchMixin, Field):
         return self.to_timestamp(value)
 
     def from_db_value(self, value, expression, connection, context):
-        return self.to_datetime(value)
+        return field_value_middleware(self, value)
 
     def to_timestamp(self, value):
         return round(super(UnixTimeStampField, self).to_timestamp(value), self.round_to)
-
-    def to_datetime(self, value):
-
-        if self.use_numeric:
-            return self.to_timestamp(value)
-        return super(UnixTimeStampField, self).to_datetime(value)
 
     def formfield(self, **kwargs):
         defaults = {'form_class': fields.FloatField}
@@ -246,6 +242,7 @@ class OrdinalPatchMixin(TimestampPatchMixin):
                 timezone.get_default_timezone()
             )
         return value
+
     def to_timestamp(self, value):
         """
         from value to ordinal timestamp format(int)
@@ -319,12 +316,6 @@ class OrdinalField(OrdinalPatchMixin, UnixTimeStampField):
 
     def get_internal_type(self):
         return "FloatField"
-
-    def to_datetime(self, value):
-
-        if self.use_numeric:
-            return self.to_timestamp(value)
-        return super(OrdinalField, self).to_datetime(value)
 
     def formfield(self, **kwargs):
         defaults = {'form_class': fields.IntegerField}
