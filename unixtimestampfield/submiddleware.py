@@ -20,4 +20,4 @@ def field_value_middleware(field, value):
     if USF_FORMAT == USF_TIMESTAMP:
         return field.to_timestamp(value)
 
-    raise ValueError('USE_FORMAT: %s should not in optional values')
+    raise ValueError('USF_FORMAT: %s should not in optional values')
