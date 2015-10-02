@@ -3,6 +3,7 @@ from django.test import TestCase, override_settings
 from django.db import models
 from django.utils import timezone
 from django import forms
+from django.template import Template, Context
 
 from .fields import UnixTimeStampField, OrdinalField
 
@@ -292,3 +293,19 @@ class OrdinalFieldTest(TestCase):
         self.assertEqual(m.str_ini, expected)
         self.assertEqual(m.float_ini, expected)
         self.assertEqual(m.int_ini, expected)
+
+
+class TemplateTagsTest(TestCase):
+
+    def setUp(self):
+        self.template = Template(
+            "{% load unixtimestampfield %} "
+            "{{t.str_ini|to_datetime}} "
+            "{{t.str_ini|to_timestamp}}"
+        )
+
+    def test_render(self):
+        t = ForTestModel()
+        rendered = self.template.render(Context({'t': t}))
+        self.assertIn("Jan. 1, 1970", rendered)
+        self.assertIn("0.0", rendered)
