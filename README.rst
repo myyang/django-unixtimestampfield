@@ -16,9 +16,10 @@ Requirements
 
 * Database that supports **Float** type is compatible
 * Python2.7, Python3.4 with Django >= 1.8
-  (Since the 1.8 is LTS version, I choose to supports from 1.8. 
-  `SubClassing will be removed in 2.0`_ , so I handle *from_db_value()* only.
-  If you could help version <= 1.7, welcome~~ :D )
+  
+**Note**: Since the 1.8 is LTS version, I choose to supports from 1.8. 
+`SubClassing will be removed in 2.0`_ , so I handle *from_db_value()* only.
+If you could help version <= 1.7, welcome~~ :D
 
 .. _`SubClassing will be removed in 2.0`: https://github.com/django/django/blob/1.8/django/db/models/fields/subclassing.py#L21
 
@@ -88,16 +89,74 @@ Example:
 
 .. code-block:: python
 
-    # In settings.py
+   # In settings.py
    USE_TZ = False
 
    >>> m = modelA.objects.create()
-    >>> m.created
-    datetime.datetime(2015, 9, 2, 10, 41, 41, 937257)
+   >>> m.created
+   datetime.datetime(2015, 9, 2, 10, 41, 41, 937257)
+
+
+Template Tags
+~~~~~~~~~~~~~
+
+Load with:
+
+.. code-block:: html
+
+   {% load unixtimestampfield %}
+
+
+Two django template filter tags are available:
+
+* **to_datetime**: Filter value as datetime
+* **to_timestamp**: Filter value as timestamp
+
+
+Tricky Sub-middleware
+~~~~~~~~~~~~~~~~~~~~~
+
+Due to values stored as float, it's hard for recognizing and leads to these tricky middleware.
+
+Here are 3 mode to show data:
+
+* **usf_default**: Show data by default, according to use_numeric option of field. This is also default setting.
+* **usf_datetime**: Always convert to datetime object
+* **usf_timestamp**: Always convert to timestamp
+
+Use `USF_FORMAT` to indicate display police in `settings.py`.  Following comes to several demos. 
+
+Assume ModelB as:
+
+.. code-block:: python
+
+   class ModelB(models.Model):
+
+        num_field = UnixTimeStampField(use_numeric=True, default=0.0)
+        dt_field = UnixTimeStampField(default=0.0)
+
+Then getting field value what you want:
+
+.. code-block:: python
+
+   >>> m = ModelB()
+   # with USF_FORMAT='usf_default' in settings.py 
+   >>> m.num_field, m.dt_field
+   (0.0, datetime.datetime(1970, 1, 1, 0, 0))
+
+   # with USF_FORMAT='usf_datetime' in settings.py 
+   >>> m.num_field, m.dt_field
+   (datetime.datetime(1970, 1, 1, 0, 0), datetime.datetime(1970, 1, 1, 0, 0))
+
+   # with USF_FORMAT='usf_timestamp' in settings.py 
+   >>> m.num_field, m.dt_field
+   (0.0, 0.0)
 
 
 Version
 -------
+
+*V0.3.1* -- Add sub-middleware and template tags
 
 *v0.3* -- Add ordinal time field and change field options **use_float** to **use_numeric**!!!
 
