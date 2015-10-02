@@ -304,6 +304,7 @@ class TemplateTagsTest(TestCase):
             "{{t.str_ini|to_timestamp}}"
         )
 
+    @override_settings(USE_TZ=True, TIME_ZONE='UTC')
     def test_render(self):
         t = ForTestModel()
         rendered = self.template.render(Context({'t': t}))
