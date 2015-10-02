@@ -156,7 +156,7 @@ Then getting field value what you want:
 Version
 -------
 
-*V0.3.1* -- Add sub-middleware and template tags
+*V0.3.2* -- Add sub-middleware and template tags
 
 *v0.3* -- Add ordinal time field and change field options **use_float** to **use_numeric**!!!
 
