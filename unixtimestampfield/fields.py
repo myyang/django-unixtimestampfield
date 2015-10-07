@@ -83,6 +83,12 @@ class TimestampPatchMixin(object):
                 value = timezone.localtime(value, timezone.utc)
             return self._datetime_to_timestamp(value)
 
+        if value is None:
+            try:
+                return float(self.default)
+            except:
+                return 0.0
+
         raise exceptions.ValidationError(
             "Unable to convert value: '%s' to timestamp" % value,
             code="invalid_timestamp"
@@ -98,6 +104,12 @@ class TimestampPatchMixin(object):
 
         if isinstance(value, datetime.datetime):
             return value
+
+        if value is None:
+            try:
+                return timezone.datetime.fromtimestamp(self.default)
+            except:
+                return timezone.datetime.fromtimestamp(0.0)
 
         raise exceptions.ValidationError(
             "Unable to convert value: '%s' to python data type" % value,
@@ -118,6 +130,12 @@ class TimestampPatchMixin(object):
             else:
                 value = timezone.localtime(value, timezone.utc)
             return value
+
+        if value is None:
+            try:
+                return timezone.datetime.fromtimestamp(self.default, timezone.utc)
+            except:
+                return timezone.datetime.fromtimestamp(0.0, timezone.utc)
 
         raise exceptions.ValidationError(
             "Unable to convert value: '%s' to python data type" % value,
