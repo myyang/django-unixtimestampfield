@@ -37,13 +37,13 @@ class TestCommand(Command):
         call_command('test', 'unixtimestampfield')
 
 setup(name='django-unixtimestampfield',
-      version='0.3.3',
+      version='0.3.4',
       packages=['unixtimestampfield'],
       license='MIT',
       author='Garfield.Yang',
       author_email='ymy1019@gmail.com',
       url='https://github.com/myyang/django-unixtimestampfield',
-      description='Unix timestamp (POSIX type) field',
+      description='Django Unix timestamp (POSIX type) field',
       long_description=open("README.rst").read(),
       cmdclass={'test': TestCommand},
       install_requires=['django>=1.8',],

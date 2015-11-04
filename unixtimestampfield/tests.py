@@ -236,7 +236,7 @@ class OrdinalFieldTest(TestCase):
         if hasattr(m, 'refresh_from_db'):
             m.refresh_from_db()
         else:
-            m = ForTestModel.objects.get(id=m.id)
+            m = ForOrdinalTestModel.objects.get(id=m.id)
 
         self.assertEqual(m.modified, today)
         self.assertEqual(m.str_ini, expected)
@@ -287,7 +287,7 @@ class OrdinalFieldTest(TestCase):
         if hasattr(m, 'refresh_from_db'):
             m.refresh_from_db()
         else:
-            m = ForTestModel.objects.get(id=m.id)
+            m = ForOrdinalTestModel.objects.get(id=m.id)
 
         self.assertEqual(m.modified, today)
         self.assertEqual(m.str_ini, expected)
