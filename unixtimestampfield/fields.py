@@ -27,6 +27,7 @@ Members
 -------
 
 """
+from __future__ import unicode_literals
 
 import time
 import datetime
@@ -37,6 +38,7 @@ from django.core import exceptions
 from django.conf import settings
 from django.forms import fields
 
+from django.utils import six
 from django.utils.translation import ugettext_lazy as _
 
 from .submiddleware import field_value_middleware
@@ -79,7 +81,7 @@ class TimestampPatchMixin(object):
         if isinstance(value, int) or isinstance(value, float):
             return float(value)
 
-        if isinstance(value, str) or isinstance(value, unicode):
+        if isinstance(value, six.string_types):
             try:
                 return float(value)
             except ValueError:
@@ -109,7 +111,7 @@ class TimestampPatchMixin(object):
             value = timezone.datetime.fromtimestamp(float(value))
             return value
 
-        if isinstance(value, str) or isinstance(value, unicode):
+        if isinstance(value, six.string_types):
             try:
                 return timezone.datetime.fromtimestamp(float(value))
             except ValueError:
@@ -137,7 +139,7 @@ class TimestampPatchMixin(object):
             value = timezone.datetime.fromtimestamp(float(value), timezone.utc)
             return value
 
-        if isinstance(value, str) or isinstance(value, unicode):
+        if isinstance(value, six.string_types):
             try:
                 return timezone.datetime.fromtimestamp(float(value), timezone.utc)
             except ValueError:
@@ -301,7 +303,7 @@ class OrdinalPatchMixin(TimestampPatchMixin):
             if value > 0:
                 return value
 
-        if isinstance(value, str) or isinstance(value, unicode):
+        if isinstance(value, six.string_types):
             try:
                 return int(value)
             except ValueError:
@@ -325,7 +327,7 @@ class OrdinalPatchMixin(TimestampPatchMixin):
             value = timezone.datetime.fromordinal(int(value))
             return value
 
-        if isinstance(value, str) or isinstance(value, unicode):
+        if isinstance(value, six.string_types):
             try:
                 return timezone.datetime.fromordinal(int(value))
             except ValueError:
@@ -343,7 +345,7 @@ class OrdinalPatchMixin(TimestampPatchMixin):
         """
         from value to datetime with tzinfo format (datetime.datetime instance)
         """
-        if isinstance(value, str) or isinstance(value, int) or isinstance(value, float):
+        if isinstance(value, six.string_types) or isinstance(value, int) or isinstance(value, float):
             value = self.to_naive_datetime(value)
 
         if isinstance(value, datetime.datetime):
