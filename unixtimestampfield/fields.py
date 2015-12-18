@@ -76,8 +76,15 @@ class TimestampPatchMixin(object):
         """
         from value to timestamp format(float)
         """
-        if isinstance(value, str) or isinstance(value, int) or isinstance(value, float):
+        if isinstance(value, int) or isinstance(value, float):
             return float(value)
+
+        if isinstance(value, str) or isinstance(value, unicode):
+            try:
+                return float(value)
+            except ValueError:
+                value = self.datetime_str_to_datetime(value)
+
         if isinstance(value, datetime.datetime):
             if timezone.is_aware(value):
                 value = timezone.localtime(value, timezone.utc)
@@ -98,9 +105,15 @@ class TimestampPatchMixin(object):
         """
         from value to datetime with tzinfo format (datetime.datetime instance)
         """
-        if isinstance(value, str) or isinstance(value, int) or isinstance(value, float):
+        if isinstance(value, int) or isinstance(value, float):
             value = timezone.datetime.fromtimestamp(float(value))
             return value
+
+        if isinstance(value, str) or isinstance(value, unicode):
+            try:
+                return timezone.datetime.fromtimestamp(float(value))
+            except ValueError:
+                return self.datetime_str_to_datetime(value)
 
         if isinstance(value, datetime.datetime):
             return value
@@ -120,9 +133,15 @@ class TimestampPatchMixin(object):
         """
         from value to datetime with tzinfo format (datetime.datetime instance)
         """
-        if isinstance(value, str) or isinstance(value, int) or isinstance(value, float):
+        if isinstance(value, int) or isinstance(value, float):
             value = timezone.datetime.fromtimestamp(float(value), timezone.utc)
             return value
+
+        if isinstance(value, str) or isinstance(value, unicode):
+            try:
+                return timezone.datetime.fromtimestamp(float(value), timezone.utc)
+            except ValueError:
+                value = self.datetime_str_to_datetime(value)
 
         if isinstance(value, datetime.datetime):
             if timezone.is_naive(value):
@@ -157,6 +176,18 @@ class TimestampPatchMixin(object):
                 return self.to_utc_datetime(value)
         else:
             return self.to_naive_datetime(value)
+
+    def datetime_str_to_datetime(self, value):
+        try:
+            if value.find('.') >= 0:
+                return timezone.datetime.strptime(value, '%Y-%m-%d %H:%M:%S.%f')
+            else:
+                return timezone.datetime.strptime(value, '%Y-%m-%d %H:%M:%S')
+        except:
+            raise exceptions.ValidationError(
+                "Unable to convert value: '%s' to datetime, please use 'YYYY-mm-dd HH:MM:SS'" % value,
+                code="invalid_timestamp"
+            )
 
 
 class UnixTimeStampField(TimestampPatchMixin, Field):
@@ -236,7 +267,7 @@ class UnixTimeStampField(TimestampPatchMixin, Field):
         return round(super(UnixTimeStampField, self).to_timestamp(value), self.round_to)
 
     def formfield(self, **kwargs):
-        defaults = {'form_class': fields.FloatField}
+        defaults = {'form_class': fields.CharField}
         defaults.update(kwargs)
         return super(UnixTimeStampField, self).formfield(**defaults)
 
@@ -265,10 +296,17 @@ class OrdinalPatchMixin(TimestampPatchMixin):
         """
         from value to ordinal timestamp format(int)
         """
-        if isinstance(value, str) or isinstance(value, int) or isinstance(value, float):
+        if isinstance(value, int) or isinstance(value, float):
             value = int(value)
             if value > 0:
                 return value
+
+        if isinstance(value, str) or isinstance(value, unicode):
+            try:
+                return int(value)
+            except ValueError:
+                value = self.datetime_str_to_datetime(value)
+
         if isinstance(value, datetime.datetime):
             if timezone.is_aware(value):
                 value = timezone.localtime(value, timezone.utc)
@@ -283,9 +321,15 @@ class OrdinalPatchMixin(TimestampPatchMixin):
         """
         from value to datetime with tzinfo format (datetime.datetime instance)
         """
-        if isinstance(value, str) or isinstance(value, int) or isinstance(value, float):
+        if isinstance(value, int) or isinstance(value, float):
             value = timezone.datetime.fromordinal(int(value))
             return value
+
+        if isinstance(value, str) or isinstance(value, unicode):
+            try:
+                return timezone.datetime.fromordinal(int(value))
+            except ValueError:
+                return self.datetime_str_to_datetime(value)
 
         if isinstance(value, datetime.datetime):
             return value
@@ -336,6 +380,6 @@ class OrdinalField(OrdinalPatchMixin, UnixTimeStampField):
         return "FloatField"
 
     def formfield(self, **kwargs):
-        defaults = {'form_class': fields.IntegerField}
+        defaults = {'form_class': fields.CharField}
         defaults.update(kwargs)
         return super(OrdinalField, self).formfield(**defaults)
