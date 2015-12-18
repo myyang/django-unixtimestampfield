@@ -130,7 +130,7 @@ class FormFieldTest(TestCase):
 
     def test_noraml(self):
         data = {
-            'str_ini': '3',
+            'str_ini': '1999-12-11 10:23:13',
             'float_ini': 3.0,
             'int_ini': 3,
             'dt_ini': 3,
@@ -189,7 +189,7 @@ class FormFieldTest(TestCase):
         tform = ForTestModelForm(data=data)
 
         self.assertFalse(tform.is_valid())
-        errors = {'str_ini': [u'Enter a number.'], }
+        errors = {'str_ini': [u"Unable to convert value: '['hello']' to datetime, please use 'YYYY-mm-dd HH:MM:SS'"], }
         self.assertDictEqual(tform.errors, errors)
         self.assertEqual(tform.error_class, forms.utils.ErrorList)
 
