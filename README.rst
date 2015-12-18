@@ -156,6 +156,8 @@ Then getting field value what you want:
 Version
 -------
 
+*V0.3.5* -- Parse time format: YYYY-mm-dd HH:MM:SS[.FFFFFF]
+
 *V0.3.4* -- Bugs fixed.
 
 *V0.3.3* -- Add sub-middleware and template tags
