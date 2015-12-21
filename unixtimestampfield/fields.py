@@ -29,7 +29,6 @@ Members
 """
 from __future__ import unicode_literals
 
-import time
 import datetime
 
 from django.db.models import Field
@@ -46,15 +45,19 @@ from .submiddleware import field_value_middleware
 
 class TimestampPatchMixin(object):
 
+    INT32 = (1 << 31) - 1
+    MAX_TS = 253402271999.999  # 9999/12/31 23:59:59
+
     def _datetime_to_timestamp(self, v):
         """
         Py2 doesn't supports timestamp()
         """
 
-        if hasattr(v, 'timestamp'):
-            return v.timestamp()
-
-        return time.mktime(v.timetuple()) + v.microsecond * 0.00001
+        # stole from https://docs.python.org/3/library/datetime.html#datetime.datetime.timestamp
+        if timezone.is_aware(v):
+            return (v - timezone.datetime(1970, 1, 1, tzinfo=timezone.utc)).total_seconds()
+        else:
+            return (v - timezone.datetime(1970, 1, 1)).total_seconds()
 
     def get_datetimenow(self):
         """
@@ -78,7 +81,7 @@ class TimestampPatchMixin(object):
         """
         from value to timestamp format(float)
         """
-        if isinstance(value, int) or isinstance(value, float):
+        if isinstance(value, six.integer_types) or isinstance(value, float):
             return float(value)
 
         if isinstance(value, six.string_types):
@@ -88,8 +91,6 @@ class TimestampPatchMixin(object):
                 value = self.datetime_str_to_datetime(value)
 
         if isinstance(value, datetime.datetime):
-            if timezone.is_aware(value):
-                value = timezone.localtime(value, timezone.utc)
             return self._datetime_to_timestamp(value)
 
         if value is None:
@@ -107,13 +108,13 @@ class TimestampPatchMixin(object):
         """
         from value to datetime with tzinfo format (datetime.datetime instance)
         """
-        if isinstance(value, int) or isinstance(value, float):
-            value = timezone.datetime.fromtimestamp(float(value))
+        if isinstance(value, six.integer_types) or isinstance(value, float):
+            value = self.from_number(float(value))
             return value
 
         if isinstance(value, six.string_types):
             try:
-                return timezone.datetime.fromtimestamp(float(value))
+                return self.from_number(float(value))
             except ValueError:
                 return self.datetime_str_to_datetime(value)
 
@@ -122,9 +123,9 @@ class TimestampPatchMixin(object):
 
         if value is None:
             try:
-                return timezone.datetime.fromtimestamp(self.default)
+                return self.from_number(self.default)
             except:
-                return timezone.datetime.fromtimestamp(0.0)
+                return timezone.datetime(1970, 1, 1, 0, 0)
 
         raise exceptions.ValidationError(
             "Unable to convert value: '%s' to python data type" % value,
@@ -135,33 +136,10 @@ class TimestampPatchMixin(object):
         """
         from value to datetime with tzinfo format (datetime.datetime instance)
         """
-        if isinstance(value, int) or isinstance(value, float):
-            value = timezone.datetime.fromtimestamp(float(value), timezone.utc)
-            return value
-
-        if isinstance(value, six.string_types):
-            try:
-                return timezone.datetime.fromtimestamp(float(value), timezone.utc)
-            except ValueError:
-                value = self.datetime_str_to_datetime(value)
-
-        if isinstance(value, datetime.datetime):
-            if timezone.is_naive(value):
-                value = timezone.make_aware(value, timezone.utc)
-            else:
-                value = timezone.localtime(value, timezone.utc)
-            return value
-
-        if value is None:
-            try:
-                return timezone.datetime.fromtimestamp(self.default, timezone.utc)
-            except:
-                return timezone.datetime.fromtimestamp(0.0, timezone.utc)
-
-        raise exceptions.ValidationError(
-            "Unable to convert value: '%s' to python data type" % value,
-            code="invalid_datetime"
-        )
+        value = self.to_naive_datetime(value)
+        if timezone.is_naive(value):
+            value = timezone.make_aware(value, timezone.utc)
+        return value
 
     def to_default_timezone_datetime(self, value):
         """
@@ -187,9 +165,20 @@ class TimestampPatchMixin(object):
                 return timezone.datetime.strptime(value, '%Y-%m-%d %H:%M:%S')
         except:
             raise exceptions.ValidationError(
-                "Unable to convert value: '%s' to datetime, please use 'YYYY-mm-dd HH:MM:SS'" % value,
+                "Unable to convert value: '%s' to datetime, "
+                "please use 'YYYY-mm-dd HH:MM:SS'" % value,
                 code="invalid_timestamp"
             )
+
+    def from_number(self, value):
+        value = float(value)
+        if value > self.MAX_TS:
+            raise exceptions.ValidationError(
+                "Value out of range, max acceptable: %s (9999/12/31 23:59:59)" % self.MAX_TS,
+                code="out_of_rnage"
+            )
+
+        return timezone.datetime(1970, 1, 1, 0, 0) + timezone.timedelta(seconds=value)
 
 
 class UnixTimeStampField(TimestampPatchMixin, Field):
@@ -276,6 +265,8 @@ class UnixTimeStampField(TimestampPatchMixin, Field):
 
 class OrdinalPatchMixin(TimestampPatchMixin):
 
+    MAX_OD = 3652059  # 9999/12/31
+
     def _datetime_to_timestamp(self, v):
         """
         overwrite to use toordinal
@@ -298,7 +289,7 @@ class OrdinalPatchMixin(TimestampPatchMixin):
         """
         from value to ordinal timestamp format(int)
         """
-        if isinstance(value, int) or isinstance(value, float):
+        if isinstance(value, six.integer_types) or isinstance(value, float):
             value = int(value)
             if value > 0:
                 return value
@@ -323,13 +314,13 @@ class OrdinalPatchMixin(TimestampPatchMixin):
         """
         from value to datetime with tzinfo format (datetime.datetime instance)
         """
-        if isinstance(value, int) or isinstance(value, float):
-            value = timezone.datetime.fromordinal(int(value))
+        if isinstance(value, six.integer_types) or isinstance(value, float):
+            value = self.from_number(value)
             return value
 
         if isinstance(value, six.string_types):
             try:
-                return timezone.datetime.fromordinal(int(value))
+                return self.from_number(value)
             except ValueError:
                 return self.datetime_str_to_datetime(value)
 
@@ -345,7 +336,8 @@ class OrdinalPatchMixin(TimestampPatchMixin):
         """
         from value to datetime with tzinfo format (datetime.datetime instance)
         """
-        if isinstance(value, six.string_types) or isinstance(value, int) or isinstance(value, float):
+        if isinstance(value, six.string_types) or \
+                isinstance(value, six.integer_types) or isinstance(value, float):
             value = self.to_naive_datetime(value)
 
         if isinstance(value, datetime.datetime):
@@ -359,6 +351,16 @@ class OrdinalPatchMixin(TimestampPatchMixin):
             "Unable to convert value: '%s' to python data type" % value,
             code="invalid_datetime"
         )
+
+    def from_number(self, value):
+        value = int(value)
+        if value > self.MAX_OD:
+            raise exceptions.ValidationError(
+                "Value out of range, max acceptable: %s (9999/12/31)" % self.MAX_OD,
+                code="out_of_rnage"
+            )
+        else:
+            return timezone.datetime.fromordinal(value)
 
 
 class OrdinalField(OrdinalPatchMixin, UnixTimeStampField):

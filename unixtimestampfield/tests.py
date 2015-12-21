@@ -1,17 +1,187 @@
+import logging
+
 from django.test import TestCase, override_settings
 
 from django.db import models
 from django.utils import timezone
 from django import forms
+from django.core import exceptions
 from django.template import Template, Context
 
-from .fields import UnixTimeStampField, OrdinalField
+from .fields import UnixTimeStampField, OrdinalField, TimestampPatchMixin
 
-unix_0 = timezone.datetime.fromtimestamp(0.0)
-unix_0_utc = timezone.datetime.fromtimestamp(0.0, timezone.utc)
+unix_0 = timezone.datetime(1970, 1, 1)
+unix_0_utc = timezone.datetime(1970, 1, 1, tzinfo=timezone.utc)
 
 ordinal_1 = timezone.datetime.fromordinal(1)
 ordinal_1_utc = timezone.make_aware(timezone.datetime.fromordinal(1), timezone.utc)
+
+logging.basicConfig()
+LOGGER = logging.getLogger(__name__)
+LOGGER.setLevel(logging.DEBUG)
+
+
+class MixinTest(TestCase):
+
+    zero_utc = timezone.datetime(1970,1,1,0,0, tzinfo=timezone.utc)
+    oneyear_utc = timezone.datetime(1971,1,1,1,1,1,123400, tzinfo=timezone.utc)  # 31539661.123400
+    oneyear_utc_i = timezone.datetime(1971,1,1,1,1,1, tzinfo=timezone.utc)  # 31539661.0
+    zero = timezone.datetime(1970,1,1,0,0)
+    oneyear = timezone.datetime(1971,1,1,1,1,1,123400)
+    oneyear_i = timezone.datetime(1971,1,1,1,1,1)
+
+    @override_settings(USE_TZ=True, TIME_ZONE='UTC')
+    def test_to_timestamp_utc(self):
+        ts = TimestampPatchMixin()
+
+        self.assertEqual(0, ts.to_timestamp(self.zero_utc))
+        self.assertEqual(31539661.123400, ts.to_timestamp(self.oneyear_utc))
+
+    @override_settings(USE_TZ=True, TIME_ZONE='Asia/Taipei')
+    def test_to_timestamp_with_tz(self):
+        ts = TimestampPatchMixin()
+
+        self.assertEqual(0, ts.to_timestamp(timezone.localtime(self.zero_utc)))
+        self.assertEqual(31539661.123400, ts.to_timestamp(timezone.localtime(self.oneyear_utc)))
+
+    @override_settings(USE_TZ=False)
+    def test_to_timestamp_without_tz(self):
+        ts = TimestampPatchMixin()
+
+        self.assertEqual(0, ts.to_timestamp(self.zero_utc))
+        self.assertEqual(0, ts.to_timestamp(self.zero))
+        self.assertEqual(0, ts.to_timestamp(timezone.localtime(self.zero_utc)))
+        self.assertEqual(31539661.123400, ts.to_timestamp(self.oneyear))
+
+    @override_settings(USE_TZ=True, TIME_ZONE='UTC')
+    def test_to_naive_utc(self):
+        ts = TimestampPatchMixin()
+
+        self.assertEqual(self.zero, ts.to_naive_datetime(0))
+        self.assertEqual(self.zero, ts.to_naive_datetime(0.0))
+        self.assertEqual(self.zero, ts.to_naive_datetime('0'))
+        self.assertEqual(self.zero, ts.to_naive_datetime('1970-01-01 00:00:00'))
+
+        self.assertEqual(self.oneyear_i, ts.to_naive_datetime(31539661))
+        self.assertEqual(self.oneyear, ts.to_naive_datetime(31539661.123400))
+        self.assertEqual(self.oneyear, ts.to_naive_datetime('31539661.123400'))
+        self.assertEqual(self.oneyear, ts.to_naive_datetime('1971-01-01 01:01:01.123400'))
+
+    @override_settings(USE_TZ=True, TIME_ZONE='Asia/Taipei')
+    def test_to_naive_with_tz(self):
+        ts = TimestampPatchMixin()
+
+        self.assertEqual(self.zero, ts.to_naive_datetime(0))
+        self.assertEqual(self.zero, ts.to_naive_datetime(0.0))
+        self.assertEqual(self.zero, ts.to_naive_datetime('0'))
+        self.assertEqual(self.zero, ts.to_naive_datetime('1970-01-01 00:00:00'))
+
+        self.assertEqual(self.oneyear_i, ts.to_naive_datetime(31539661))
+        self.assertEqual(self.oneyear, ts.to_naive_datetime(31539661.123400))
+        self.assertEqual(self.oneyear, ts.to_naive_datetime('31539661.123400'))
+        self.assertEqual(self.oneyear, ts.to_naive_datetime('1971-01-01 01:01:01.123400'))
+
+    @override_settings(USE_TZ=False)
+    def test_to_naive_without_tz(self):
+        ts = TimestampPatchMixin()
+
+        self.assertEqual(self.zero, ts.to_naive_datetime(0))
+        self.assertEqual(self.zero, ts.to_naive_datetime(0.0))
+        self.assertEqual(self.zero, ts.to_naive_datetime('0'))
+        self.assertEqual(self.zero, ts.to_naive_datetime('1970-01-01 00:00:00'))
+
+        self.assertEqual(self.oneyear_i, ts.to_naive_datetime(31539661))
+        self.assertEqual(self.oneyear, ts.to_naive_datetime(31539661.123400))
+        self.assertEqual(self.oneyear, ts.to_naive_datetime('31539661.123400'))
+        self.assertEqual(self.oneyear, ts.to_naive_datetime('1971-01-01 01:01:01.123400'))
+
+    @override_settings(USE_TZ=True, TIME_ZONE='UTC')
+    def test_to_utc_utc(self):
+        ts = TimestampPatchMixin()
+
+        self.assertEqual(self.zero_utc, ts.to_utc_datetime(0))
+        self.assertEqual(self.zero_utc, ts.to_utc_datetime(0.0))
+        self.assertEqual(self.zero_utc, ts.to_utc_datetime('0'))
+        self.assertEqual(self.zero_utc, ts.to_utc_datetime('1970-01-01 00:00:00'))
+
+        self.assertEqual(self.oneyear_utc_i, ts.to_utc_datetime(31539661))
+        self.assertEqual(self.oneyear_utc, ts.to_utc_datetime(31539661.123400))
+        self.assertEqual(self.oneyear_utc, ts.to_utc_datetime('31539661.123400'))
+        self.assertEqual(self.oneyear_utc, ts.to_utc_datetime('1971-01-01 01:01:01.123400'))
+
+    @override_settings(USE_TZ=True, TIME_ZONE='Asia/Taipei')
+    def test_to_utc_with_tz(self):
+        ts = TimestampPatchMixin()
+
+        self.assertEqual(self.zero_utc, ts.to_utc_datetime(0))
+        self.assertEqual(self.zero_utc, ts.to_utc_datetime(0.0))
+        self.assertEqual(self.zero_utc, ts.to_utc_datetime('0'))
+        self.assertEqual(self.zero_utc, ts.to_utc_datetime('1970-01-01 00:00:00'))
+
+        self.assertEqual(self.oneyear_utc_i, ts.to_utc_datetime(31539661))
+        self.assertEqual(self.oneyear_utc, ts.to_utc_datetime(31539661.123400))
+        self.assertEqual(self.oneyear_utc, ts.to_utc_datetime('31539661.123400'))
+        self.assertEqual(self.oneyear_utc, ts.to_utc_datetime('1971-01-01 01:01:01.123400'))
+
+    @override_settings(USE_TZ=False)
+    def test_to_utc_without_tz(self):
+        ts = TimestampPatchMixin()
+
+        self.assertEqual(self.zero_utc, ts.to_utc_datetime(0))
+        self.assertEqual(self.zero_utc, ts.to_utc_datetime(0.0))
+        self.assertEqual(self.zero_utc, ts.to_utc_datetime('0'))
+        self.assertEqual(self.zero_utc, ts.to_utc_datetime('1970-01-01 00:00:00'))
+
+        self.assertEqual(self.oneyear_utc_i, ts.to_utc_datetime(31539661))
+        self.assertEqual(self.oneyear_utc, ts.to_utc_datetime(31539661.123400))
+        self.assertEqual(self.oneyear_utc, ts.to_utc_datetime('31539661.123400'))
+        self.assertEqual(self.oneyear_utc, ts.to_utc_datetime('1971-01-01 01:01:01.123400'))
+
+    @override_settings(USE_TZ=True, TIME_ZONE='UTC')
+    def test_to_datetime_utc(self):
+        ts = TimestampPatchMixin()
+
+        self.assertEqual(self.zero_utc, ts.to_datetime(0))
+        self.assertEqual(self.zero_utc, ts.to_datetime(0.0))
+        self.assertEqual(self.zero_utc, ts.to_datetime('0'))
+        self.assertEqual(self.zero_utc, ts.to_datetime('1970-01-01 00:00:00'))
+
+        self.assertEqual(self.oneyear_utc_i, ts.to_datetime(31539661))
+        self.assertEqual(self.oneyear_utc, ts.to_datetime(31539661.123400))
+        self.assertEqual(self.oneyear_utc, ts.to_datetime('31539661.123400'))
+        self.assertEqual(self.oneyear_utc, ts.to_datetime('1971-01-01 01:01:01.123400'))
+
+    @override_settings(USE_TZ=True, TIME_ZONE='Asia/Taipei')
+    def test_to_datetime_with_tz(self):
+        ts = TimestampPatchMixin()
+        zero = timezone.localtime(self.zero_utc)
+        oneyear = timezone.localtime(self.oneyear_utc)
+        oneyear_i = timezone.localtime(self.oneyear_utc_i)
+
+        self.assertEqual(zero, ts.to_datetime(0))
+        self.assertEqual(zero, ts.to_datetime(0.0))
+        self.assertEqual(zero, ts.to_datetime('0'))
+        self.assertEqual(zero, ts.to_datetime('1970-01-01 00:00:00'))
+
+        self.assertEqual(oneyear_i, ts.to_datetime(31539661))
+        self.assertEqual(oneyear, ts.to_datetime(31539661.123400))
+        self.assertEqual(oneyear, ts.to_datetime('31539661.123400'))
+        self.assertEqual(oneyear, ts.to_datetime('1971-01-01 01:01:01.123400'))
+
+    @override_settings(USE_TZ=False)
+    def test_to_datetime_without_tz(self):
+        ts = TimestampPatchMixin()
+
+        self.assertEqual(self.zero, ts.to_datetime(0))
+        self.assertEqual(self.zero, ts.to_datetime(0.0))
+        self.assertEqual(self.zero, ts.to_datetime('0'))
+        self.assertEqual(self.zero, ts.to_datetime('1970-01-01 00:00:00'))
+
+        self.assertEqual(self.oneyear_i, ts.to_datetime(31539661))
+        self.assertEqual(self.oneyear, ts.to_datetime(31539661.123400))
+        self.assertEqual(self.oneyear, ts.to_datetime('31539661.123400'))
+        self.assertEqual(self.oneyear, ts.to_datetime('1971-01-01 01:01:01.123400'))
+
 
 
 class ForTestModel(models.Model):
@@ -32,7 +202,7 @@ class TimeStampFieldTest(TestCase):
     @override_settings(USE_TZ=True, TIME_ZONE='UTC')
     def test_init_with_use_tz(self):
         now = timezone.now()
-        expected = timezone.make_aware(timezone.datetime.utcfromtimestamp(0.0), timezone.utc)
+        expected = timezone.datetime(1970, 1, 1, tzinfo=timezone.utc)
         t = ForTestModel.objects.create()
 
         self.assertGreater(t.created, now)
@@ -43,7 +213,7 @@ class TimeStampFieldTest(TestCase):
 
     @override_settings(USE_TZ=True, TIME_ZONE='UTC')
     def test_assignment_with_tz(self):
-        expected = timezone.make_aware(timezone.datetime.utcfromtimestamp(3.0), timezone.utc)
+        expected = timezone.datetime(1970, 1, 1, 0, 0, 3, tzinfo=timezone.utc)
         t = ForTestModel.objects.create()
 
         pre_modified = t.modified
@@ -51,7 +221,7 @@ class TimeStampFieldTest(TestCase):
         t.str_ini = '3'
         t.float_ini = 3.0
         t.int_ini = 3
-        t.dt_ini = timezone.datetime.fromtimestamp(3.0, timezone.utc)
+        t.dt_ini = timezone.datetime(1970, 1, 1, 0, 0, 3, tzinfo=timezone.utc)
         t.use_numeric_field = 3.1111116
         t.round_3_field = 3.1116
         t.save()
@@ -72,7 +242,7 @@ class TimeStampFieldTest(TestCase):
     def test_init_with_different_tz(self):
         now = timezone.now()
         expected = timezone.localtime(
-            timezone.make_aware(timezone.datetime.utcfromtimestamp(0.0), timezone.utc),
+            timezone.datetime(1970, 1, 1, tzinfo=timezone.utc),
             timezone.pytz.timezone('Asia/Taipei')
         )
         t = ForTestModel.objects.create()
@@ -83,10 +253,41 @@ class TimeStampFieldTest(TestCase):
         self.assertEqual(t.float_ini, expected)
         self.assertEqual(t.int_ini, expected)
 
+    @override_settings(USE_TZ=True, TIME_ZONE='Asia/Taipei')
+    def test_assignment_with_different_tz(self):
+        expected = timezone.localtime(
+            timezone.datetime(1970, 1, 1, 0, 0, 3, tzinfo=timezone.utc),
+            timezone.pytz.timezone('Asia/Taipei')
+        )
+
+        t = ForTestModel.objects.create()
+
+        pre_modified = t.modified
+
+        t.str_ini = '3'
+        t.float_ini = 3.0
+        t.int_ini = 3
+        t.dt_ini = timezone.datetime.fromtimestamp(3.0, timezone.pytz.timezone('Asia/Taipei'))
+        t.use_numeric_field = 3.1111116
+        t.round_3_field = 3.1116
+        t.save()
+
+        if hasattr(t, 'refresh_from_db'):
+            t.refresh_from_db()
+        else:
+            t = ForTestModel.objects.get(id=t.id)
+
+        self.assertGreater(t.modified, pre_modified)
+        self.assertEqual(t.str_ini, expected)
+        self.assertEqual(t.float_ini, expected)
+        self.assertEqual(t.int_ini, expected)
+        self.assertEqual(t.use_numeric_field, 3.111112)
+        self.assertEqual(t.round_3_field, 3.112)
+
     @override_settings(USE_TZ=False)
     def test_init_without_tz(self):
-        now = timezone.datetime.now()
-        expected = timezone.datetime.fromtimestamp(0.0)
+        now = timezone.datetime.utcnow()
+        expected = timezone.datetime(1970,1,1,0,0)
         t = ForTestModel.objects.create()
 
         self.assertGreater(t.created, now)
@@ -97,7 +298,7 @@ class TimeStampFieldTest(TestCase):
 
     @override_settings(USE_TZ=False)
     def test_assignment_without_tz(self):
-        expected = timezone.datetime.fromtimestamp(3.0)
+        expected = timezone.datetime(1970, 1, 1, 0, 0, 3)
         t = ForTestModel.objects.create()
 
         pre_modified = t.modified
@@ -117,6 +318,37 @@ class TimeStampFieldTest(TestCase):
         self.assertEqual(t.str_ini, expected)
         self.assertEqual(t.float_ini, expected)
         self.assertEqual(t.int_ini, expected)
+
+    @override_settings(USE_TZ=False)
+    def test_assignment_with_big_num(self):
+        expected = timezone.datetime(1970, 1, 1, 0, 0) + timezone.timedelta(seconds=14248491461)
+        t = ForTestModel.objects.create()
+
+        pre_modified = t.modified
+
+        t.str_ini = '14248491461'
+        t.float_ini = 14248491461.0
+        t.int_ini = 14248491461
+        t.dt_ini = timezone.datetime.fromtimestamp(14248491461.0)
+        t.save()
+
+        if hasattr(t, 'refresh_from_db'):
+            t.refresh_from_db()
+        else:
+            t = ForTestModel.objects.get(id=t.id)
+
+        self.assertGreater(t.modified, pre_modified)
+        self.assertEqual(t.str_ini, expected)
+        self.assertEqual(t.float_ini, expected)
+        self.assertEqual(t.int_ini, expected)
+
+    @override_settings(USE_TZ=False)
+    def test_assignment_overflow(self):
+
+        t = ForTestModel.objects.create()
+        t.float_ini = 14248491461222.0
+
+        self.assertRaises(exceptions.ValidationError, t.save)
 
 
 class ForTestModelForm(forms.ModelForm):
@@ -293,6 +525,14 @@ class OrdinalFieldTest(TestCase):
         self.assertEqual(m.str_ini, expected)
         self.assertEqual(m.float_ini, expected)
         self.assertEqual(m.int_ini, expected)
+
+    @override_settings(USE_TZ=False)
+    def test_assignment_overflow(self):
+
+        t = ForOrdinalTestModel.objects.create()
+        t.float_ini = 14248491461222.0
+
+        self.assertRaises(exceptions.ValidationError, t.save)
 
 
 class TemplateTagsTest(TestCase):
