@@ -29,8 +29,6 @@ Members
 """
 from __future__ import unicode_literals
 
-import math
-import time
 import datetime
 
 from django.db.models import Field
