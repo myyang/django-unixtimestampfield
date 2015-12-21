@@ -8,13 +8,180 @@ from django import forms
 from django.core import exceptions
 from django.template import Template, Context
 
-from .fields import UnixTimeStampField, OrdinalField
+from .fields import UnixTimeStampField, OrdinalField, TimestampPatchMixin
 
 unix_0 = timezone.datetime(1970, 1, 1)
 unix_0_utc = timezone.datetime(1970, 1, 1, tzinfo=timezone.utc)
 
 ordinal_1 = timezone.datetime.fromordinal(1)
 ordinal_1_utc = timezone.make_aware(timezone.datetime.fromordinal(1), timezone.utc)
+
+logging.basicConfig()
+LOGGER = logging.getLogger(__name__)
+LOGGER.setLevel(logging.DEBUG)
+
+
+class MixinTest(TestCase):
+
+    zero_utc = timezone.datetime(1970,1,1,0,0, tzinfo=timezone.utc)
+    oneyear_utc = timezone.datetime(1971,1,1,1,1,1,123400, tzinfo=timezone.utc)  # 31539661.123400
+    oneyear_utc_i = timezone.datetime(1971,1,1,1,1,1, tzinfo=timezone.utc)  # 31539661.0
+    zero = timezone.datetime(1970,1,1,0,0)
+    oneyear = timezone.datetime(1971,1,1,1,1,1,123400)
+    oneyear_i = timezone.datetime(1971,1,1,1,1,1)
+
+    @override_settings(USE_TZ=True, TIME_ZONE='UTC')
+    def test_to_timestamp_utc(self):
+        ts = TimestampPatchMixin()
+
+        self.assertEqual(0, ts.to_timestamp(self.zero_utc))
+        self.assertEqual(31539661.123400, ts.to_timestamp(self.oneyear_utc))
+
+    @override_settings(USE_TZ=True, TIME_ZONE='Asia/Taipei')
+    def test_to_timestamp_with_tz(self):
+        ts = TimestampPatchMixin()
+
+        self.assertEqual(0, ts.to_timestamp(timezone.localtime(self.zero_utc)))
+        self.assertEqual(31539661.123400, ts.to_timestamp(timezone.localtime(self.oneyear_utc)))
+
+    @override_settings(USE_TZ=False)
+    def test_to_timestamp_without_tz(self):
+        ts = TimestampPatchMixin()
+
+        self.assertEqual(0, ts.to_timestamp(self.zero_utc))
+        self.assertEqual(0, ts.to_timestamp(self.zero))
+        self.assertEqual(0, ts.to_timestamp(timezone.localtime(self.zero_utc)))
+        self.assertEqual(31539661.123400, ts.to_timestamp(self.oneyear))
+
+    @override_settings(USE_TZ=True, TIME_ZONE='UTC')
+    def test_to_naive_utc(self):
+        ts = TimestampPatchMixin()
+
+        self.assertEqual(self.zero, ts.to_naive_datetime(0))
+        self.assertEqual(self.zero, ts.to_naive_datetime(0.0))
+        self.assertEqual(self.zero, ts.to_naive_datetime('0'))
+        self.assertEqual(self.zero, ts.to_naive_datetime('1970-01-01 00:00:00'))
+
+        self.assertEqual(self.oneyear_i, ts.to_naive_datetime(31539661))
+        self.assertEqual(self.oneyear, ts.to_naive_datetime(31539661.123400))
+        self.assertEqual(self.oneyear, ts.to_naive_datetime('31539661.123400'))
+        self.assertEqual(self.oneyear, ts.to_naive_datetime('1971-01-01 01:01:01.123400'))
+
+    @override_settings(USE_TZ=True, TIME_ZONE='Asia/Taipei')
+    def test_to_naive_with_tz(self):
+        ts = TimestampPatchMixin()
+
+        self.assertEqual(self.zero, ts.to_naive_datetime(0))
+        self.assertEqual(self.zero, ts.to_naive_datetime(0.0))
+        self.assertEqual(self.zero, ts.to_naive_datetime('0'))
+        self.assertEqual(self.zero, ts.to_naive_datetime('1970-01-01 00:00:00'))
+
+        self.assertEqual(self.oneyear_i, ts.to_naive_datetime(31539661))
+        self.assertEqual(self.oneyear, ts.to_naive_datetime(31539661.123400))
+        self.assertEqual(self.oneyear, ts.to_naive_datetime('31539661.123400'))
+        self.assertEqual(self.oneyear, ts.to_naive_datetime('1971-01-01 01:01:01.123400'))
+
+    @override_settings(USE_TZ=False)
+    def test_to_naive_without_tz(self):
+        ts = TimestampPatchMixin()
+
+        self.assertEqual(self.zero, ts.to_naive_datetime(0))
+        self.assertEqual(self.zero, ts.to_naive_datetime(0.0))
+        self.assertEqual(self.zero, ts.to_naive_datetime('0'))
+        self.assertEqual(self.zero, ts.to_naive_datetime('1970-01-01 00:00:00'))
+
+        self.assertEqual(self.oneyear_i, ts.to_naive_datetime(31539661))
+        self.assertEqual(self.oneyear, ts.to_naive_datetime(31539661.123400))
+        self.assertEqual(self.oneyear, ts.to_naive_datetime('31539661.123400'))
+        self.assertEqual(self.oneyear, ts.to_naive_datetime('1971-01-01 01:01:01.123400'))
+
+    @override_settings(USE_TZ=True, TIME_ZONE='UTC')
+    def test_to_utc_utc(self):
+        ts = TimestampPatchMixin()
+
+        self.assertEqual(self.zero_utc, ts.to_utc_datetime(0))
+        self.assertEqual(self.zero_utc, ts.to_utc_datetime(0.0))
+        self.assertEqual(self.zero_utc, ts.to_utc_datetime('0'))
+        self.assertEqual(self.zero_utc, ts.to_utc_datetime('1970-01-01 00:00:00'))
+
+        self.assertEqual(self.oneyear_utc_i, ts.to_utc_datetime(31539661))
+        self.assertEqual(self.oneyear_utc, ts.to_utc_datetime(31539661.123400))
+        self.assertEqual(self.oneyear_utc, ts.to_utc_datetime('31539661.123400'))
+        self.assertEqual(self.oneyear_utc, ts.to_utc_datetime('1971-01-01 01:01:01.123400'))
+
+    @override_settings(USE_TZ=True, TIME_ZONE='Asia/Taipei')
+    def test_to_utc_with_tz(self):
+        ts = TimestampPatchMixin()
+
+        self.assertEqual(self.zero_utc, ts.to_utc_datetime(0))
+        self.assertEqual(self.zero_utc, ts.to_utc_datetime(0.0))
+        self.assertEqual(self.zero_utc, ts.to_utc_datetime('0'))
+        self.assertEqual(self.zero_utc, ts.to_utc_datetime('1970-01-01 00:00:00'))
+
+        self.assertEqual(self.oneyear_utc_i, ts.to_utc_datetime(31539661))
+        self.assertEqual(self.oneyear_utc, ts.to_utc_datetime(31539661.123400))
+        self.assertEqual(self.oneyear_utc, ts.to_utc_datetime('31539661.123400'))
+        self.assertEqual(self.oneyear_utc, ts.to_utc_datetime('1971-01-01 01:01:01.123400'))
+
+    @override_settings(USE_TZ=False)
+    def test_to_utc_without_tz(self):
+        ts = TimestampPatchMixin()
+
+        self.assertEqual(self.zero_utc, ts.to_utc_datetime(0))
+        self.assertEqual(self.zero_utc, ts.to_utc_datetime(0.0))
+        self.assertEqual(self.zero_utc, ts.to_utc_datetime('0'))
+        self.assertEqual(self.zero_utc, ts.to_utc_datetime('1970-01-01 00:00:00'))
+
+        self.assertEqual(self.oneyear_utc_i, ts.to_utc_datetime(31539661))
+        self.assertEqual(self.oneyear_utc, ts.to_utc_datetime(31539661.123400))
+        self.assertEqual(self.oneyear_utc, ts.to_utc_datetime('31539661.123400'))
+        self.assertEqual(self.oneyear_utc, ts.to_utc_datetime('1971-01-01 01:01:01.123400'))
+
+    @override_settings(USE_TZ=True, TIME_ZONE='UTC')
+    def test_to_datetime_utc(self):
+        ts = TimestampPatchMixin()
+
+        self.assertEqual(self.zero_utc, ts.to_datetime(0))
+        self.assertEqual(self.zero_utc, ts.to_datetime(0.0))
+        self.assertEqual(self.zero_utc, ts.to_datetime('0'))
+        self.assertEqual(self.zero_utc, ts.to_datetime('1970-01-01 00:00:00'))
+
+        self.assertEqual(self.oneyear_utc_i, ts.to_datetime(31539661))
+        self.assertEqual(self.oneyear_utc, ts.to_datetime(31539661.123400))
+        self.assertEqual(self.oneyear_utc, ts.to_datetime('31539661.123400'))
+        self.assertEqual(self.oneyear_utc, ts.to_datetime('1971-01-01 01:01:01.123400'))
+
+    @override_settings(USE_TZ=True, TIME_ZONE='Asia/Taipei')
+    def test_to_datetime_with_tz(self):
+        ts = TimestampPatchMixin()
+        zero = timezone.localtime(self.zero_utc)
+        oneyear = timezone.localtime(self.oneyear_utc)
+        oneyear_i = timezone.localtime(self.oneyear_utc_i)
+
+        self.assertEqual(zero, ts.to_datetime(0))
+        self.assertEqual(zero, ts.to_datetime(0.0))
+        self.assertEqual(zero, ts.to_datetime('0'))
+        self.assertEqual(zero, ts.to_datetime('1970-01-01 00:00:00'))
+
+        self.assertEqual(oneyear_i, ts.to_datetime(31539661))
+        self.assertEqual(oneyear, ts.to_datetime(31539661.123400))
+        self.assertEqual(oneyear, ts.to_datetime('31539661.123400'))
+        self.assertEqual(oneyear, ts.to_datetime('1971-01-01 01:01:01.123400'))
+
+    @override_settings(USE_TZ=False)
+    def test_to_datetime_without_tz(self):
+        ts = TimestampPatchMixin()
+
+        self.assertEqual(self.zero, ts.to_datetime(0))
+        self.assertEqual(self.zero, ts.to_datetime(0.0))
+        self.assertEqual(self.zero, ts.to_datetime('0'))
+        self.assertEqual(self.zero, ts.to_datetime('1970-01-01 00:00:00'))
+
+        self.assertEqual(self.oneyear_i, ts.to_datetime(31539661))
+        self.assertEqual(self.oneyear, ts.to_datetime(31539661.123400))
+        self.assertEqual(self.oneyear, ts.to_datetime('31539661.123400'))
+        self.assertEqual(self.oneyear, ts.to_datetime('1971-01-01 01:01:01.123400'))
+
 
 
 class ForTestModel(models.Model):
