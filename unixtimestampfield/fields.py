@@ -55,9 +55,6 @@ class TimestampPatchMixin(object):
         Py2 doesn't supports timestamp()
         """
 
-        if hasattr(v, 'timestamp'):
-            return v.timestamp()
-
         # stole from https://docs.python.org/3/library/datetime.html#datetime.datetime.timestamp
         if timezone.is_aware(v):
             return (v - timezone.datetime(1970, 1, 1, tzinfo=timezone.utc)).total_seconds()
@@ -130,7 +127,7 @@ class TimestampPatchMixin(object):
             try:
                 return self.from_number(self.default)
             except:
-                return timezone.datetime.fromtimestamp(0.0)
+                return timezone.datetime(1970, 1, 1, 0, 0)
 
         raise exceptions.ValidationError(
             "Unable to convert value: '%s' to python data type" % value,
