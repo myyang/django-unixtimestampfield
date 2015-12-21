@@ -29,8 +29,6 @@ Members
 """
 from __future__ import unicode_literals
 
-import math
-import time
 import datetime
 
 from django.db.models import Field
@@ -55,10 +53,11 @@ class TimestampPatchMixin(object):
         Py2 doesn't supports timestamp()
         """
 
-        if hasattr(v, 'timestamp'):
-            return v.timestamp()
-
-        return time.mktime(v.timetuple()) + v.microsecond * 0.00001
+        # stole from https://docs.python.org/3/library/datetime.html#datetime.datetime.timestamp
+        if timezone.is_aware(v):
+            return (v - timezone.datetime(1970, 1, 1, tzinfo=timezone.utc)).total_seconds()
+        else:
+            return (v - timezone.datetime(1970, 1, 1)).total_seconds()
 
     def get_datetimenow(self):
         """
@@ -92,8 +91,6 @@ class TimestampPatchMixin(object):
                 value = self.datetime_str_to_datetime(value)
 
         if isinstance(value, datetime.datetime):
-            if timezone.is_aware(value):
-                value = timezone.localtime(value, timezone.utc)
             return self._datetime_to_timestamp(value)
 
         if value is None:
@@ -128,7 +125,7 @@ class TimestampPatchMixin(object):
             try:
                 return self.from_number(self.default)
             except:
-                return timezone.datetime.fromtimestamp(0.0)
+                return timezone.datetime(1970, 1, 1, 0, 0)
 
         raise exceptions.ValidationError(
             "Unable to convert value: '%s' to python data type" % value,
@@ -139,33 +136,10 @@ class TimestampPatchMixin(object):
         """
         from value to datetime with tzinfo format (datetime.datetime instance)
         """
-        if isinstance(value, six.integer_types) or isinstance(value, float):
-            value = self.from_number(float(value), timezone.utc)
-            return value
-
-        if isinstance(value, six.string_types):
-            try:
-                return self.from_number(float(value), timezone.utc)
-            except ValueError:
-                value = self.datetime_str_to_datetime(value)
-
-        if isinstance(value, datetime.datetime):
-            if timezone.is_naive(value):
-                value = timezone.make_aware(value, timezone.utc)
-            else:
-                value = timezone.localtime(value, timezone.utc)
-            return value
-
-        if value is None:
-            try:
-                return self.from_number(self.default, timezone.utc)
-            except:
-                return timezone.datetime.fromtimestamp(0.0, timezone.utc)
-
-        raise exceptions.ValidationError(
-            "Unable to convert value: '%s' to python data type" % value,
-            code="invalid_datetime"
-        )
+        value = self.to_naive_datetime(value)
+        if timezone.is_naive(value):
+            value = timezone.make_aware(value, timezone.utc)
+        return value
 
     def to_default_timezone_datetime(self, value):
         """
@@ -196,7 +170,7 @@ class TimestampPatchMixin(object):
                 code="invalid_timestamp"
             )
 
-    def from_number(self, value, tz=None):
+    def from_number(self, value):
         value = float(value)
         if value > self.MAX_TS:
             raise exceptions.ValidationError(
@@ -204,14 +178,7 @@ class TimestampPatchMixin(object):
                 code="out_of_rnage"
             )
 
-        elif value > self.INT32:
-            f, i = math.modf(value)
-            t = timezone.datetime(1970, 1, 1, 0, 0) + timezone.timedelta(seconds=i, microseconds=f)
-            if tz:
-                t = timezone.make_aware(t, tz)
-            return t
-        else:
-            return timezone.datetime.fromtimestamp(value, tz)
+        return timezone.datetime(1970, 1, 1, 0, 0) + timezone.timedelta(seconds=value)
 
 
 class UnixTimeStampField(TimestampPatchMixin, Field):
