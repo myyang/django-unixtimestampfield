@@ -1,3 +1,5 @@
+import logging
+
 from django.test import TestCase, override_settings
 
 from django.db import models
@@ -8,8 +10,8 @@ from django.template import Template, Context
 
 from .fields import UnixTimeStampField, OrdinalField
 
-unix_0 = timezone.datetime.fromtimestamp(0.0)
-unix_0_utc = timezone.datetime.fromtimestamp(0.0, timezone.utc)
+unix_0 = timezone.datetime(1970, 1, 1)
+unix_0_utc = timezone.datetime(1970, 1, 1, tzinfo=timezone.utc)
 
 ordinal_1 = timezone.datetime.fromordinal(1)
 ordinal_1_utc = timezone.make_aware(timezone.datetime.fromordinal(1), timezone.utc)
@@ -33,7 +35,7 @@ class TimeStampFieldTest(TestCase):
     @override_settings(USE_TZ=True, TIME_ZONE='UTC')
     def test_init_with_use_tz(self):
         now = timezone.now()
-        expected = timezone.make_aware(timezone.datetime.utcfromtimestamp(0.0), timezone.utc)
+        expected = timezone.datetime(1970, 1, 1, tzinfo=timezone.utc)
         t = ForTestModel.objects.create()
 
         self.assertGreater(t.created, now)
@@ -44,7 +46,7 @@ class TimeStampFieldTest(TestCase):
 
     @override_settings(USE_TZ=True, TIME_ZONE='UTC')
     def test_assignment_with_tz(self):
-        expected = timezone.make_aware(timezone.datetime.utcfromtimestamp(3.0), timezone.utc)
+        expected = timezone.datetime(1970, 1, 1, 0, 0, 3, tzinfo=timezone.utc)
         t = ForTestModel.objects.create()
 
         pre_modified = t.modified
@@ -52,7 +54,7 @@ class TimeStampFieldTest(TestCase):
         t.str_ini = '3'
         t.float_ini = 3.0
         t.int_ini = 3
-        t.dt_ini = timezone.datetime.fromtimestamp(3.0, timezone.utc)
+        t.dt_ini = timezone.datetime(1970, 1, 1, 0, 0, 3, tzinfo=timezone.utc)
         t.use_numeric_field = 3.1111116
         t.round_3_field = 3.1116
         t.save()
@@ -73,7 +75,7 @@ class TimeStampFieldTest(TestCase):
     def test_init_with_different_tz(self):
         now = timezone.now()
         expected = timezone.localtime(
-            timezone.make_aware(timezone.datetime.utcfromtimestamp(0.0), timezone.utc),
+            timezone.datetime(1970, 1, 1, tzinfo=timezone.utc),
             timezone.pytz.timezone('Asia/Taipei')
         )
         t = ForTestModel.objects.create()
@@ -84,10 +86,41 @@ class TimeStampFieldTest(TestCase):
         self.assertEqual(t.float_ini, expected)
         self.assertEqual(t.int_ini, expected)
 
+    @override_settings(USE_TZ=True, TIME_ZONE='Asia/Taipei')
+    def test_assignment_with_different_tz(self):
+        expected = timezone.localtime(
+            timezone.datetime(1970, 1, 1, 0, 0, 3, tzinfo=timezone.utc),
+            timezone.pytz.timezone('Asia/Taipei')
+        )
+
+        t = ForTestModel.objects.create()
+
+        pre_modified = t.modified
+
+        t.str_ini = '3'
+        t.float_ini = 3.0
+        t.int_ini = 3
+        t.dt_ini = timezone.datetime.fromtimestamp(3.0, timezone.pytz.timezone('Asia/Taipei'))
+        t.use_numeric_field = 3.1111116
+        t.round_3_field = 3.1116
+        t.save()
+
+        if hasattr(t, 'refresh_from_db'):
+            t.refresh_from_db()
+        else:
+            t = ForTestModel.objects.get(id=t.id)
+
+        self.assertGreater(t.modified, pre_modified)
+        self.assertEqual(t.str_ini, expected)
+        self.assertEqual(t.float_ini, expected)
+        self.assertEqual(t.int_ini, expected)
+        self.assertEqual(t.use_numeric_field, 3.111112)
+        self.assertEqual(t.round_3_field, 3.112)
+
     @override_settings(USE_TZ=False)
     def test_init_without_tz(self):
-        now = timezone.datetime.now()
-        expected = timezone.datetime.fromtimestamp(0.0)
+        now = timezone.datetime.utcnow()
+        expected = timezone.datetime(1970,1,1,0,0)
         t = ForTestModel.objects.create()
 
         self.assertGreater(t.created, now)
@@ -98,7 +131,7 @@ class TimeStampFieldTest(TestCase):
 
     @override_settings(USE_TZ=False)
     def test_assignment_without_tz(self):
-        expected = timezone.datetime.fromtimestamp(3.0)
+        expected = timezone.datetime(1970, 1, 1, 0, 0, 3)
         t = ForTestModel.objects.create()
 
         pre_modified = t.modified
