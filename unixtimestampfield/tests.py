@@ -3,6 +3,7 @@ from django.test import TestCase, override_settings
 from django.db import models
 from django.utils import timezone
 from django import forms
+from django.core import exceptions
 from django.template import Template, Context
 
 from .fields import UnixTimeStampField, OrdinalField
@@ -117,6 +118,37 @@ class TimeStampFieldTest(TestCase):
         self.assertEqual(t.str_ini, expected)
         self.assertEqual(t.float_ini, expected)
         self.assertEqual(t.int_ini, expected)
+
+    @override_settings(USE_TZ=False)
+    def test_assignment_with_big_num(self):
+        expected = timezone.datetime(1970, 1, 1, 0, 0) + timezone.timedelta(seconds=14248491461)
+        t = ForTestModel.objects.create()
+
+        pre_modified = t.modified
+
+        t.str_ini = '14248491461'
+        t.float_ini = 14248491461.0
+        t.int_ini = 14248491461
+        t.dt_ini = timezone.datetime.fromtimestamp(14248491461.0)
+        t.save()
+
+        if hasattr(t, 'refresh_from_db'):
+            t.refresh_from_db()
+        else:
+            t = ForTestModel.objects.get(id=t.id)
+
+        self.assertGreater(t.modified, pre_modified)
+        self.assertEqual(t.str_ini, expected)
+        self.assertEqual(t.float_ini, expected)
+        self.assertEqual(t.int_ini, expected)
+
+    @override_settings(USE_TZ=False)
+    def test_assignment_overflow(self):
+
+        t = ForTestModel.objects.create()
+        t.float_ini = 14248491461222.0
+
+        self.assertRaises(exceptions.ValidationError, t.save)
 
 
 class ForTestModelForm(forms.ModelForm):
@@ -293,6 +325,14 @@ class OrdinalFieldTest(TestCase):
         self.assertEqual(m.str_ini, expected)
         self.assertEqual(m.float_ini, expected)
         self.assertEqual(m.int_ini, expected)
+
+    @override_settings(USE_TZ=False)
+    def test_assignment_overflow(self):
+
+        t = ForOrdinalTestModel.objects.create()
+        t.float_ini = 14248491461222.0
+
+        self.assertRaises(exceptions.ValidationError, t.save)
 
 
 class TemplateTagsTest(TestCase):
