@@ -8,7 +8,7 @@ from django import forms
 from django.core import exceptions
 from django.template import Template, Context
 
-from .fields import UnixTimeStampField, OrdinalField, TimestampPatchMixin
+from .fields import UnixTimeStampField, OrdinalField, TimestampPatchMixin, OrdinalPatchMixin
 
 unix_0 = timezone.datetime(1970, 1, 1)
 unix_0_utc = timezone.datetime(1970, 1, 1, tzinfo=timezone.utc)
@@ -424,6 +424,164 @@ class FormFieldTest(TestCase):
         errors = {'str_ini': [u"Unable to convert value: '['hello']' to datetime, please use 'YYYY-mm-dd HH:MM:SS'"], }
         self.assertDictEqual(tform.errors, errors)
         self.assertEqual(tform.error_class, forms.utils.ErrorList)
+
+
+class OrdMixinTest(TestCase):
+
+    zero_utc = timezone.datetime(1, 1, 1, 0, 0,  tzinfo=timezone.utc)
+    oneyear_utc = timezone.datetime(1, 12, 31, 0, 0,  tzinfo=timezone.utc)  # 365
+    zero = timezone.datetime(1, 1, 1, 0, 0)
+    oneyear = timezone.datetime(1, 12, 31, 0, 0)  # 365
+
+    @override_settings(USE_TZ=True, TIME_ZONE='UTC')
+    def test_to_timestamp_utc(self):
+        ts = OrdinalPatchMixin()
+
+        self.assertEqual(1, ts.to_timestamp(self.zero_utc))
+        self.assertEqual(365, ts.to_timestamp(self.oneyear_utc))
+
+    @override_settings(USE_TZ=True, TIME_ZONE='Asia/Taipei')
+    def test_to_timestamp_with_tz(self):
+        ts = OrdinalPatchMixin()
+
+        self.assertEqual(1, ts.to_timestamp(timezone.localtime(self.zero_utc)))
+        self.assertEqual(365, ts.to_timestamp(timezone.localtime(self.oneyear_utc)))
+
+    @override_settings(USE_TZ=False)
+    def test_to_timestamp_without_tz(self):
+        ts = OrdinalPatchMixin()
+
+        self.assertEqual(1, ts.to_timestamp(self.zero_utc))
+        self.assertEqual(1, ts.to_timestamp(self.zero))
+        self.assertEqual(365, ts.to_timestamp(self.oneyear))
+
+    @override_settings(USE_TZ=True, TIME_ZONE='UTC')
+    def test_to_naive_utc(self):
+        ts = OrdinalPatchMixin()
+
+        self.assertEqual(self.zero, ts.to_naive_datetime(1))
+        self.assertEqual(self.zero, ts.to_naive_datetime(1.0))
+        self.assertEqual(self.zero, ts.to_naive_datetime('1'))
+        self.assertEqual(self.zero, ts.to_naive_datetime('0001-01-01 00:00:00'))
+
+        self.assertEqual(self.oneyear, ts.to_naive_datetime(365))
+        self.assertEqual(self.oneyear, ts.to_naive_datetime(365.0))
+        self.assertEqual(self.oneyear, ts.to_naive_datetime('365'))
+        self.assertEqual(self.oneyear, ts.to_naive_datetime('0001-12-31 00:00:00'))
+
+    @override_settings(USE_TZ=True, TIME_ZONE='Asia/Taipei')
+    def test_to_naive_with_tz(self):
+        ts = OrdinalPatchMixin()
+
+        self.assertEqual(self.zero, ts.to_naive_datetime(1))
+        self.assertEqual(self.zero, ts.to_naive_datetime(1.0))
+        self.assertEqual(self.zero, ts.to_naive_datetime('1'))
+        self.assertEqual(self.zero, ts.to_naive_datetime('0001-01-01 00:00:00'))
+
+        self.assertEqual(self.oneyear, ts.to_naive_datetime(365))
+        self.assertEqual(self.oneyear, ts.to_naive_datetime(365.0))
+        self.assertEqual(self.oneyear, ts.to_naive_datetime('365'))
+        self.assertEqual(self.oneyear, ts.to_naive_datetime('0001-12-31 00:00:00'))
+
+    @override_settings(USE_TZ=False)
+    def test_to_naive_without_tz(self):
+        ts = OrdinalPatchMixin()
+
+        self.assertEqual(self.zero, ts.to_naive_datetime(1))
+        self.assertEqual(self.zero, ts.to_naive_datetime(1.0))
+        self.assertEqual(self.zero, ts.to_naive_datetime('1'))
+        self.assertEqual(self.zero, ts.to_naive_datetime('0001-01-01 00:00:00'))
+
+        self.assertEqual(self.oneyear, ts.to_naive_datetime(365))
+        self.assertEqual(self.oneyear, ts.to_naive_datetime(365.0))
+        self.assertEqual(self.oneyear, ts.to_naive_datetime('365'))
+        self.assertEqual(self.oneyear, ts.to_naive_datetime('0001-12-31 00:00:00'))
+
+    @override_settings(USE_TZ=True, TIME_ZONE='UTC')
+    def test_to_utc_utc(self):
+        ts = OrdinalPatchMixin()
+
+        self.assertEqual(self.zero_utc, ts.to_utc_datetime(1))
+        self.assertEqual(self.zero_utc, ts.to_utc_datetime(1.0))
+        self.assertEqual(self.zero_utc, ts.to_utc_datetime('1'))
+        self.assertEqual(self.zero_utc, ts.to_utc_datetime('0001-01-01 00:00:00'))
+
+        self.assertEqual(self.oneyear_utc, ts.to_utc_datetime(365))
+        self.assertEqual(self.oneyear_utc, ts.to_utc_datetime(365.0))
+        self.assertEqual(self.oneyear_utc, ts.to_utc_datetime('365'))
+        self.assertEqual(self.oneyear_utc, ts.to_utc_datetime('0001-12-31 00:00:00'))
+
+    @override_settings(USE_TZ=True, TIME_ZONE='Asia/Taipei')
+    def test_to_utc_with_tz(self):
+        ts = OrdinalPatchMixin()
+
+        self.assertEqual(self.zero_utc, ts.to_utc_datetime(1))
+        self.assertEqual(self.zero_utc, ts.to_utc_datetime(1.0))
+        self.assertEqual(self.zero_utc, ts.to_utc_datetime('1'))
+        self.assertEqual(self.zero_utc, ts.to_utc_datetime('0001-01-01 00:00:00'))
+
+        self.assertEqual(self.oneyear_utc, ts.to_utc_datetime(365))
+        self.assertEqual(self.oneyear_utc, ts.to_utc_datetime(365.0))
+        self.assertEqual(self.oneyear_utc, ts.to_utc_datetime('365'))
+        self.assertEqual(self.oneyear_utc, ts.to_utc_datetime('0001-12-31 00:00:00'))
+
+    @override_settings(USE_TZ=False)
+    def test_to_utc_without_tz(self):
+        ts = OrdinalPatchMixin()
+
+        self.assertEqual(self.zero_utc, ts.to_utc_datetime(1))
+        self.assertEqual(self.zero_utc, ts.to_utc_datetime(1.0))
+        self.assertEqual(self.zero_utc, ts.to_utc_datetime('1'))
+        self.assertEqual(self.zero_utc, ts.to_utc_datetime('0001-01-01 00:00:00'))
+
+        self.assertEqual(self.oneyear_utc, ts.to_utc_datetime(365))
+        self.assertEqual(self.oneyear_utc, ts.to_utc_datetime(365.0))
+        self.assertEqual(self.oneyear_utc, ts.to_utc_datetime('365'))
+        self.assertEqual(self.oneyear_utc, ts.to_utc_datetime('0001-12-31 00:00:00'))
+
+    @override_settings(USE_TZ=True, TIME_ZONE='UTC')
+    def test_to_datetime_utc(self):
+        ts = OrdinalPatchMixin()
+
+        self.assertEqual(self.zero_utc, ts.to_datetime(1))
+        self.assertEqual(self.zero_utc, ts.to_datetime(1.0))
+        self.assertEqual(self.zero_utc, ts.to_datetime('1'))
+        self.assertEqual(self.zero_utc, ts.to_datetime('0001-01-01 00:00:00'))
+
+        self.assertEqual(self.oneyear_utc, ts.to_datetime(365))
+        self.assertEqual(self.oneyear_utc, ts.to_datetime(365.0))
+        self.assertEqual(self.oneyear_utc, ts.to_datetime('365'))
+        self.assertEqual(self.oneyear_utc, ts.to_datetime('0001-12-31 00:00:00'))
+
+    @override_settings(USE_TZ=True, TIME_ZONE='Asia/Taipei')
+    def test_to_datetime_with_tz(self):
+        ts = OrdinalPatchMixin()
+        zero = timezone.localtime(self.zero_utc)
+        oneyear = timezone.localtime(self.oneyear_utc)
+
+        self.assertEqual(zero, ts.to_datetime(1))
+        self.assertEqual(zero, ts.to_datetime(1.0))
+        self.assertEqual(zero, ts.to_datetime('1'))
+        self.assertEqual(zero, ts.to_datetime('0001-01-01 00:00:00'))
+
+        self.assertEqual(oneyear, ts.to_datetime(365))
+        self.assertEqual(oneyear, ts.to_datetime(365.0))
+        self.assertEqual(oneyear, ts.to_datetime('365'))
+        self.assertEqual(oneyear, ts.to_datetime('0001-12-31 00:00:00'))
+
+    @override_settings(USE_TZ=False)
+    def test_to_datetime_without_tz(self):
+        ts = OrdinalPatchMixin()
+
+        self.assertEqual(self.zero, ts.to_datetime(1))
+        self.assertEqual(self.zero, ts.to_datetime(1.0))
+        self.assertEqual(self.zero, ts.to_datetime('1'))
+        self.assertEqual(self.zero, ts.to_datetime('0001-01-01 00:00:00'))
+
+        self.assertEqual(self.oneyear, ts.to_datetime(365))
+        self.assertEqual(self.oneyear, ts.to_datetime(365.0))
+        self.assertEqual(self.oneyear, ts.to_datetime('365'))
+        self.assertEqual(self.oneyear, ts.to_datetime('0001-12-31 00:00:00'))
 
 
 class ForOrdinalTestModel(models.Model):
