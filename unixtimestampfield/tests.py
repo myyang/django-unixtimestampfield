@@ -651,7 +651,7 @@ class OrdinalFieldTest(TestCase):
 
     @override_settings(USE_TZ=False)
     def test_init_without_tz(self):
-        today = timezone.datetime.fromordinal(timezone.now().toordinal())
+        today = timezone.datetime.fromordinal(timezone.datetime.utcnow().toordinal())
         expected = timezone.datetime.fromordinal(1)
         m = ForOrdinalTestModel.objects.create()
 
@@ -664,7 +664,7 @@ class OrdinalFieldTest(TestCase):
     @override_settings(USE_TZ=False)
     def test_assignment_without_tz(self):
 
-        today = timezone.datetime.fromordinal(timezone.now().toordinal())
+        today = timezone.datetime.fromordinal(timezone.datetime.utcnow().toordinal())
         expected = timezone.datetime.fromordinal(3)
         m = ForOrdinalTestModel.objects.create()
 
