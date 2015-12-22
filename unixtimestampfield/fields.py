@@ -359,8 +359,7 @@ class OrdinalPatchMixin(TimestampPatchMixin):
                 "Value out of range, max acceptable: %s (9999/12/31)" % self.MAX_OD,
                 code="out_of_rnage"
             )
-        else:
-            return timezone.datetime.fromordinal(value)
+        return timezone.datetime(1, 1, 1, 0, 0) + timezone.timedelta(days=(value-1))
 
 
 class OrdinalField(OrdinalPatchMixin, UnixTimeStampField):
