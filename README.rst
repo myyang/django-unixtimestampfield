@@ -34,7 +34,7 @@ Usage
 -----
 
 
-Used in model as:
+Used in model as following:
 
 .. code-block:: python
 
@@ -53,7 +53,7 @@ Used in model as:
         num_field = UnixTimeStampField(use_numeric=True, default=0.0)
 
 
-Behavior exmpale:
+Operation exmpale:
 
 .. code-block:: python
 
@@ -72,8 +72,8 @@ Behavior exmpale:
 Field Options
 ~~~~~~~~~~~~~
 
-* **auto_now**: Set as True to refresh while saving, just like DatetimeField
-* **auto_now_add**: set as True to add while creating, just like DatetimeField
+* **auto_now**: Set to True for updating while saving, just like DatetimeField
+* **auto_now_add**: set to True for updating while creating, just like DatetimeField
 * **round_to**: percision (*num*)  of round(value, *num*), default: **6**
 * **use_float**: **DEPRECATED in v0.3**, see use_numeric
 * **use_numeric**: set as True that instance attribute would be numeric, default as **False**
@@ -83,7 +83,7 @@ Django settings
 ~~~~~~~~~~~~~~~
 
 
-If `USE_TZ` is set to `False`, there is no **tzinfo** while accessing attribute
+If `USE_TZ` is set to `False`, return current datetime (in UTC timezone) info without **tzinfo** while accessing attribute. 
 
 Example:
 
@@ -96,11 +96,10 @@ Example:
    >>> m.created
    datetime.datetime(2015, 9, 2, 10, 41, 41, 937257)
 
-
 Template Tags
 ~~~~~~~~~~~~~
 
-Load with:
+Load template tags:
 
 .. code-block:: html
 
@@ -116,15 +115,15 @@ Two django template filter tags are available:
 Tricky Sub-middleware
 ~~~~~~~~~~~~~~~~~~~~~
 
-Due to values stored as float, it's hard for recognizing and leads to these tricky middleware.
+Due to value is stored as float, it's hard for recognizing and leads to this tricky middleware.
 
-Here are 3 mode to show data:
+Here are 3 modes to show data:
 
 * **usf_default**: Show data by default, according to use_numeric option of field. This is also default setting.
 * **usf_datetime**: Always convert to datetime object
 * **usf_timestamp**: Always convert to timestamp
 
-Use `USF_FORMAT` to indicate display police in `settings.py`.  Following comes to several demos. 
+Use `USF_FORMAT` to indicate display police in `settings.py`. Let's see examples.
 
 Assume ModelB as:
 
@@ -156,7 +155,7 @@ Then getting field value what you want:
 Version
 -------
 
-*V0.3.5.1* -- Inter compatibility and fix timezone problem
+*V0.3.5.1* -- Integer compatibility and fix timezone problem
 
 *V0.3.5* -- Parse time format: YYYY-mm-dd HH:MM:SS[.FFFFFF]
 
