@@ -5,9 +5,34 @@ UnixTimeStampField
 
 release |release|, version |version|
 
-.. versionadded:: 1.0
+.. versionadded:: 0.3.6
+
+    Fix timezone problem. All records are stored UTC timezone and convert while retrive.
+
+.. versionadded:: 0.3.5.1
+
+    Integer compatibility and fix timezone problem
+
+.. versionadded:: 0.3.5
+
+    Parse time format: YYYY-mm-dd HH:MM:SS[.FFFFFF]
+
+.. versionadded:: 0.3.4
+
+    Bugs fixed.
+
+.. versionadded:: 0.3.3
+
+    Add sub-middleware and template tags
+
+.. versionadded:: 0.3
+
+    Add ordinal time field and change field options **use_float** to **use_numeric**!!!
+
+.. versionadded:: 0.1
 
     Initial
+
 
 Contents
 --------
@@ -18,10 +43,6 @@ Classes:
 * :class:`UnixTimeStampField`
 * :class:`OrdinalPatchMixin`
 * :class:`OrdinalField`
-
-Functions:
-
-Variables:
 
 Members
 -------
