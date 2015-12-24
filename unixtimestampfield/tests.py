@@ -24,11 +24,15 @@ LOGGER.setLevel(logging.DEBUG)
 class MixinTest(TestCase):
 
     zero_utc = timezone.datetime(1970, 1, 1, 0, 0,  tzinfo=timezone.utc)
-    oneyear_utc = timezone.datetime(1971, 1, 1, 1, 1, 1, 123400,  tzinfo=timezone.utc)  # 31539661.123400
+    oneyear_utc = timezone.datetime(
+        1971, 1, 1, 1, 1, 1, 123400, tzinfo=timezone.utc)  # 31539661.123400
     oneyear_utc_i = timezone.datetime(1971, 1, 1, 1, 1, 1,  tzinfo=timezone.utc)  # 31539661.0
     zero = timezone.datetime(1970, 1, 1, 0, 0)
     oneyear = timezone.datetime(1971, 1, 1, 1, 1, 1, 123400)
     oneyear_i = timezone.datetime(1971, 1, 1, 1, 1, 1)
+    negyear_utc = timezone.datetime(
+        1969, 1, 1, 1, 1, 1, 123400, tzinfo=timezone.utc)  # -31532338.8766
+    negyear_utc_i = timezone.datetime(1969, 1, 1, 1, 1, 1, tzinfo=timezone.utc)  # -31532339
 
     @override_settings(USE_TZ=True, TIME_ZONE='UTC')
     def test_to_timestamp_utc(self):
@@ -36,6 +40,9 @@ class MixinTest(TestCase):
 
         self.assertEqual(0, ts.to_timestamp(self.zero_utc))
         self.assertEqual(31539661.123400, ts.to_timestamp(self.oneyear_utc))
+        self.assertEqual(31539661, ts.to_timestamp(self.oneyear_utc_i))
+        self.assertEqual(-31532338.8766, ts.to_timestamp(self.negyear_utc))
+        self.assertEqual(-31532339, ts.to_timestamp(self.negyear_utc_i))
 
     @override_settings(USE_TZ=True, TIME_ZONE='Asia/Taipei')
     def test_to_timestamp_with_tz(self):
@@ -43,6 +50,9 @@ class MixinTest(TestCase):
 
         self.assertEqual(0, ts.to_timestamp(timezone.localtime(self.zero_utc)))
         self.assertEqual(31539661.123400, ts.to_timestamp(timezone.localtime(self.oneyear_utc)))
+        self.assertEqual(31539661, ts.to_timestamp(timezone.localtime(self.oneyear_utc_i)))
+        self.assertEqual(-31532338.8766, ts.to_timestamp(timezone.localtime(self.negyear_utc)))
+        self.assertEqual(-31532339, ts.to_timestamp(timezone.localtime(self.negyear_utc_i)))
 
     @override_settings(USE_TZ=False)
     def test_to_timestamp_without_tz(self):
@@ -52,6 +62,10 @@ class MixinTest(TestCase):
         self.assertEqual(0, ts.to_timestamp(self.zero))
         self.assertEqual(0, ts.to_timestamp(timezone.localtime(self.zero_utc)))
         self.assertEqual(31539661.123400, ts.to_timestamp(self.oneyear))
+        self.assertEqual(31539661.123400, ts.to_timestamp(self.oneyear_utc))
+        self.assertEqual(31539661, ts.to_timestamp(self.oneyear_utc_i))
+        self.assertEqual(-31532338.8766, ts.to_timestamp(self.negyear_utc))
+        self.assertEqual(-31532339, ts.to_timestamp(self.negyear_utc_i))
 
     @override_settings(USE_TZ=True, TIME_ZONE='UTC')
     def test_to_naive_utc(self):
