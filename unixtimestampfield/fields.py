@@ -355,9 +355,9 @@ class OrdinalPatchMixin(TimestampPatchMixin):
 
     def from_number(self, value):
         value = int(value)
-        if value > self.MAX_OD:
+        if value > self.MAX_OD or value < 1:
             raise exceptions.ValidationError(
-                "Value out of range, max acceptable: %s (9999/12/31)" % self.MAX_OD,
+                "Value out of range, acceptable: 1 ~ %s (1/1/1 ~ 9999/12/31)" % self.MAX_OD,
                 code="out_of_rnage"
             )
         return timezone.datetime(1, 1, 1, 0, 0) + timezone.timedelta(days=(value-1))

@@ -589,6 +589,14 @@ class OrdMixinTest(TestCase):
         self.assertEqual(self.oneyear, ts.to_datetime('365'))
         self.assertEqual(self.oneyear, ts.to_datetime('0001-12-31 00:00:00'))
 
+    @override_settings(USE_TZ=True, TIME_ZONE='UTC')
+    def test_over_and_under_flow(self):
+        ts = OrdinalPatchMixin()
+
+        self.assertRaises(exceptions.ValidationError, ts.from_number, 3652060)
+        self.assertRaises(exceptions.ValidationError, ts.from_number, 0)
+        self.assertRaises(exceptions.ValidationError, ts.from_number, -1)
+
 
 class ForOrdinalTestModel(models.Model):
 
