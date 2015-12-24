@@ -24,11 +24,15 @@ LOGGER.setLevel(logging.DEBUG)
 class MixinTest(TestCase):
 
     zero_utc = timezone.datetime(1970, 1, 1, 0, 0,  tzinfo=timezone.utc)
-    oneyear_utc = timezone.datetime(1971, 1, 1, 1, 1, 1, 123400,  tzinfo=timezone.utc)  # 31539661.123400
+    oneyear_utc = timezone.datetime(
+        1971, 1, 1, 1, 1, 1, 123400, tzinfo=timezone.utc)  # 31539661.123400
     oneyear_utc_i = timezone.datetime(1971, 1, 1, 1, 1, 1,  tzinfo=timezone.utc)  # 31539661.0
     zero = timezone.datetime(1970, 1, 1, 0, 0)
     oneyear = timezone.datetime(1971, 1, 1, 1, 1, 1, 123400)
     oneyear_i = timezone.datetime(1971, 1, 1, 1, 1, 1)
+    negyear_utc = timezone.datetime(
+        1969, 1, 1, 1, 1, 1, 123400, tzinfo=timezone.utc)  # -31532338.8766
+    negyear_utc_i = timezone.datetime(1969, 1, 1, 1, 1, 1, tzinfo=timezone.utc)  # -31532339
 
     @override_settings(USE_TZ=True, TIME_ZONE='UTC')
     def test_to_timestamp_utc(self):
@@ -36,6 +40,9 @@ class MixinTest(TestCase):
 
         self.assertEqual(0, ts.to_timestamp(self.zero_utc))
         self.assertEqual(31539661.123400, ts.to_timestamp(self.oneyear_utc))
+        self.assertEqual(31539661, ts.to_timestamp(self.oneyear_utc_i))
+        self.assertEqual(-31532338.8766, ts.to_timestamp(self.negyear_utc))
+        self.assertEqual(-31532339, ts.to_timestamp(self.negyear_utc_i))
 
     @override_settings(USE_TZ=True, TIME_ZONE='Asia/Taipei')
     def test_to_timestamp_with_tz(self):
@@ -43,6 +50,9 @@ class MixinTest(TestCase):
 
         self.assertEqual(0, ts.to_timestamp(timezone.localtime(self.zero_utc)))
         self.assertEqual(31539661.123400, ts.to_timestamp(timezone.localtime(self.oneyear_utc)))
+        self.assertEqual(31539661, ts.to_timestamp(timezone.localtime(self.oneyear_utc_i)))
+        self.assertEqual(-31532338.8766, ts.to_timestamp(timezone.localtime(self.negyear_utc)))
+        self.assertEqual(-31532339, ts.to_timestamp(timezone.localtime(self.negyear_utc_i)))
 
     @override_settings(USE_TZ=False)
     def test_to_timestamp_without_tz(self):
@@ -52,6 +62,10 @@ class MixinTest(TestCase):
         self.assertEqual(0, ts.to_timestamp(self.zero))
         self.assertEqual(0, ts.to_timestamp(timezone.localtime(self.zero_utc)))
         self.assertEqual(31539661.123400, ts.to_timestamp(self.oneyear))
+        self.assertEqual(31539661.123400, ts.to_timestamp(self.oneyear_utc))
+        self.assertEqual(31539661, ts.to_timestamp(self.oneyear_utc_i))
+        self.assertEqual(-31532338.8766, ts.to_timestamp(self.negyear_utc))
+        self.assertEqual(-31532339, ts.to_timestamp(self.negyear_utc_i))
 
     @override_settings(USE_TZ=True, TIME_ZONE='UTC')
     def test_to_naive_utc(self):
@@ -182,6 +196,13 @@ class MixinTest(TestCase):
         self.assertEqual(self.oneyear, ts.to_datetime('31539661.123400'))
         self.assertEqual(self.oneyear, ts.to_datetime('1971-01-01 01:01:01.123400'))
 
+    @override_settings(USE_TZ=True, TIME_ZONE='UTC')
+    def test_over_and_under_flow(self):
+        ts = TimestampPatchMixin()
+
+        self.assertRaises(exceptions.ValidationError, ts.from_number, 253402272000)
+        self.assertRaises(exceptions.ValidationError, ts.from_number, -719163)
+
 
 class ForTestModel(models.Model):
 
@@ -286,7 +307,7 @@ class TimeStampFieldTest(TestCase):
     @override_settings(USE_TZ=False)
     def test_init_without_tz(self):
         now = timezone.datetime.utcnow()
-        expected = timezone.datetime(1970,1,1,0,0)
+        expected = timezone.datetime(1970, 1, 1, 0, 0)
         t = ForTestModel.objects.create()
 
         self.assertGreater(t.created, now)
@@ -351,6 +372,7 @@ class TimeStampFieldTest(TestCase):
 
 
 class ForTestModelForm(forms.ModelForm):
+
     class Meta:
         model = ForTestModel
         fields = ['str_ini', 'float_ini', 'int_ini', 'dt_ini',
@@ -420,7 +442,8 @@ class FormFieldTest(TestCase):
         tform = ForTestModelForm(data=data)
 
         self.assertFalse(tform.is_valid())
-        errors = {'str_ini': [u"Unable to convert value: '['hello']' to datetime, please use 'YYYY-mm-dd HH:MM:SS'"], }
+        errors = {'str_ini': [u"Unable to convert value: '['hello']' to datetime"
+                              u", please use 'YYYY-mm-dd HH:MM:SS'"]}
         self.assertDictEqual(tform.errors, errors)
         self.assertEqual(tform.error_class, forms.utils.ErrorList)
 
@@ -428,7 +451,7 @@ class FormFieldTest(TestCase):
 class OrdMixinTest(TestCase):
 
     zero_utc = timezone.datetime(1, 1, 1, 0, 0,  tzinfo=timezone.utc)
-    oneyear_utc = timezone.datetime(1, 12, 31, 0, 0,  tzinfo=timezone.utc)  # 365
+    oneyear_utc = timezone.datetime(1, 12, 31, 0, 0, tzinfo=timezone.utc)  # 365
     zero = timezone.datetime(1, 1, 1, 0, 0)
     oneyear = timezone.datetime(1, 12, 31, 0, 0)  # 365
 
@@ -581,6 +604,14 @@ class OrdMixinTest(TestCase):
         self.assertEqual(self.oneyear, ts.to_datetime(365.0))
         self.assertEqual(self.oneyear, ts.to_datetime('365'))
         self.assertEqual(self.oneyear, ts.to_datetime('0001-12-31 00:00:00'))
+
+    @override_settings(USE_TZ=True, TIME_ZONE='UTC')
+    def test_over_and_under_flow(self):
+        ts = OrdinalPatchMixin()
+
+        self.assertRaises(exceptions.ValidationError, ts.from_number, 3652060)
+        self.assertRaises(exceptions.ValidationError, ts.from_number, 0)
+        self.assertRaises(exceptions.ValidationError, ts.from_number, -1)
 
 
 class ForOrdinalTestModel(models.Model):
