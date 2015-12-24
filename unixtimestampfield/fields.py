@@ -46,7 +46,7 @@ from .submiddleware import field_value_middleware
 class TimestampPatchMixin(object):
 
     INT32 = (1 << 31) - 1
-    MAX_TS = 253402271999.999  # 9999/12/31 23:59:59
+    MAX_TS, MIN_TS = 253402271999.999, -719162  # 9999/12/31 23:59:59, 1/1/1 00:00:00
 
     def _datetime_to_timestamp(self, v):
         """
@@ -172,9 +172,10 @@ class TimestampPatchMixin(object):
 
     def from_number(self, value):
         value = float(value)
-        if value > self.MAX_TS:
+        if value > self.MAX_TS or value < self.MIN_TS:
             raise exceptions.ValidationError(
-                "Value out of range, max acceptable: %s (9999/12/31 23:59:59)" % self.MAX_TS,
+                "Value out of range,acceptable: "
+                "%s ~ %s (1/1/1 00:00:00 ~ 9999/12/31 23:59:59)" % (self.MIN_TS, self.MAX_TS),
                 code="out_of_rnage"
             )
 

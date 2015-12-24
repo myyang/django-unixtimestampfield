@@ -182,6 +182,13 @@ class MixinTest(TestCase):
         self.assertEqual(self.oneyear, ts.to_datetime('31539661.123400'))
         self.assertEqual(self.oneyear, ts.to_datetime('1971-01-01 01:01:01.123400'))
 
+    @override_settings(USE_TZ=True, TIME_ZONE='UTC')
+    def test_over_and_under_flow(self):
+        ts = TimestampPatchMixin()
+
+        self.assertRaises(exceptions.ValidationError, ts.from_number, 253402272000)
+        self.assertRaises(exceptions.ValidationError, ts.from_number, -719163)
+
 
 class ForTestModel(models.Model):
 
