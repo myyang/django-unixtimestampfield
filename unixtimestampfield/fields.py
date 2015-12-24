@@ -130,8 +130,11 @@ class TimestampPatchMixin(object):
         from value to datetime with tzinfo format (datetime.datetime instance)
         """
         value = self.to_naive_datetime(value)
+
         if timezone.is_naive(value):
             value = timezone.make_aware(value, timezone.utc)
+        else:
+            value = timezone.localtime(value, timezone.utc)
         return value
 
     def to_default_timezone_datetime(self, value):
