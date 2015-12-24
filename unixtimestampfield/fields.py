@@ -81,10 +81,7 @@ class TimestampPatchMixin(object):
         """
         from value to timestamp format(float)
         """
-        if isinstance(value, six.integer_types) or isinstance(value, float):
-            return float(value)
-
-        if isinstance(value, six.string_types):
+        if isinstance(value, (six.integer_types, float, six.string_types)):
             try:
                 return float(value)
             except ValueError:
@@ -108,13 +105,9 @@ class TimestampPatchMixin(object):
         """
         from value to datetime with tzinfo format (datetime.datetime instance)
         """
-        if isinstance(value, six.integer_types) or isinstance(value, float):
-            value = self.from_number(float(value))
-            return value
-
-        if isinstance(value, six.string_types):
+        if isinstance(value, (six.integer_types, float, six.string_types)):
             try:
-                return self.from_number(float(value))
+                return self.from_number(value)
             except ValueError:
                 return self.datetime_str_to_datetime(value)
 
@@ -290,12 +283,7 @@ class OrdinalPatchMixin(TimestampPatchMixin):
         """
         from value to ordinal timestamp format(int)
         """
-        if isinstance(value, six.integer_types) or isinstance(value, float):
-            value = int(value)
-            if value > 0:
-                return value
-
-        if isinstance(value, six.string_types):
+        if isinstance(value, (six.integer_types, float, six.string_types)):
             try:
                 return int(value)
             except ValueError:
@@ -315,11 +303,7 @@ class OrdinalPatchMixin(TimestampPatchMixin):
         """
         from value to datetime with tzinfo format (datetime.datetime instance)
         """
-        if isinstance(value, six.integer_types) or isinstance(value, float):
-            value = self.from_number(value)
-            return value
-
-        if isinstance(value, six.string_types):
+        if isinstance(value, (six.integer_types, float, six.string_types)):
             try:
                 return self.from_number(value)
             except ValueError:
@@ -337,8 +321,7 @@ class OrdinalPatchMixin(TimestampPatchMixin):
         """
         from value to datetime with tzinfo format (datetime.datetime instance)
         """
-        if isinstance(value, six.string_types) or \
-                isinstance(value, six.integer_types) or isinstance(value, float):
+        if isinstance(value, (six.integer_types, float, six.string_types)):
             value = self.to_naive_datetime(value)
 
         if isinstance(value, datetime.datetime):
