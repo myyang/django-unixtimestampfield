@@ -1,5 +1,38 @@
 # -*- coding: utf-8 -*-
 
+"""
+Sub middleware
+
+release |release|, version |version|
+
+
+.. versionadded:: 0.3.4
+
+    Add extra function param
+
+.. versionadded:: 0.3.3
+
+    Initial
+
+
+Contents
+--------
+
+Functions:
+
+* :func:`field_value_middleware`
+
+Variables:
+
+* :data:`USF_FORMAT`
+* :data:`USF_DATETIME`
+* :data:`USF_TIMESTAMP`
+* :data:`USF_DEFAULT`
+
+Members
+-------
+
+"""
 from django.conf import settings
 
 USF_DATETIME, USF_TIMESTAMP, USF_DEFAULT = 'usf_datetime', 'usf_timestamp', 'usf_default'

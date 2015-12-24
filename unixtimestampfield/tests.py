@@ -307,7 +307,7 @@ class TimeStampFieldTest(TestCase):
     @override_settings(USE_TZ=False)
     def test_init_without_tz(self):
         now = timezone.datetime.utcnow()
-        expected = timezone.datetime(1970,1,1,0,0)
+        expected = timezone.datetime(1970, 1, 1, 0, 0)
         t = ForTestModel.objects.create()
 
         self.assertGreater(t.created, now)
@@ -372,6 +372,7 @@ class TimeStampFieldTest(TestCase):
 
 
 class ForTestModelForm(forms.ModelForm):
+
     class Meta:
         model = ForTestModel
         fields = ['str_ini', 'float_ini', 'int_ini', 'dt_ini',
@@ -441,7 +442,8 @@ class FormFieldTest(TestCase):
         tform = ForTestModelForm(data=data)
 
         self.assertFalse(tform.is_valid())
-        errors = {'str_ini': [u"Unable to convert value: '['hello']' to datetime, please use 'YYYY-mm-dd HH:MM:SS'"], }
+        errors = {'str_ini': [u"Unable to convert value: '['hello']' to datetime"
+                              u", please use 'YYYY-mm-dd HH:MM:SS'"]}
         self.assertDictEqual(tform.errors, errors)
         self.assertEqual(tform.error_class, forms.utils.ErrorList)
 
@@ -449,7 +451,7 @@ class FormFieldTest(TestCase):
 class OrdMixinTest(TestCase):
 
     zero_utc = timezone.datetime(1, 1, 1, 0, 0,  tzinfo=timezone.utc)
-    oneyear_utc = timezone.datetime(1, 12, 31, 0, 0,  tzinfo=timezone.utc)  # 365
+    oneyear_utc = timezone.datetime(1, 12, 31, 0, 0, tzinfo=timezone.utc)  # 365
     zero = timezone.datetime(1, 1, 1, 0, 0)
     oneyear = timezone.datetime(1, 12, 31, 0, 0)  # 365
 

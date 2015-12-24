@@ -1,5 +1,31 @@
 # -*- coding: utf-8 -*-
+"""
+UnixTimeStampField template tags
 
+release |release|, version |version|
+
+
+.. versionadded:: 0.3.4
+
+    Add extra function param
+
+.. versionadded:: 0.3.3
+
+    Initial
+
+
+Contents
+--------
+
+Functions:
+
+* :func:`to_datetime`
+* :func:`to_timestamp`
+
+Members
+-------
+
+"""
 import time
 
 from django.template import Library

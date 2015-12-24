@@ -36,6 +36,7 @@ class TestCommand(Command):
             django.setup()
         call_command('test', 'unixtimestampfield')
 
+
 setup(name='django-unixtimestampfield',
       version='0.3.6',
       packages=['unixtimestampfield'],
@@ -46,8 +47,10 @@ setup(name='django-unixtimestampfield',
       description='Django Unix timestamp (POSIX type) field',
       long_description=open("README.rst").read(),
       cmdclass={'test': TestCommand},
-      install_requires=['django>=1.8',],
+      install_requires=['django>=1.8', ],
       classifiers=[
+          'Development Status :: 4 - Beta',
+          'License :: OSI Approved :: MIT License',
           'Intended Audience :: Developers',
           'Programming Language :: Python',
           'Programming Language :: Python :: 2.7',
