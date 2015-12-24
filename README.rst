@@ -155,6 +155,8 @@ Then getting field value what you want:
 Version
 -------
 
+*V0.3.7* -- Check minimum value.
+
 *V0.3.6* -- Fix timezone problem. All records are stored UTC timezone and convert while retrive.
 
 *V0.3.5.1* -- Integer compatibility and fix timezone problem

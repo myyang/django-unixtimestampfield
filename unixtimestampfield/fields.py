@@ -5,6 +5,10 @@ UnixTimeStampField
 
 release |release|, version |version|
 
+.. versionadded:: 0.3.7
+
+    Check minimum value.
+
 .. versionadded:: 0.3.6
 
     Fix timezone problem. All records are stored UTC timezone and convert while retrive.
