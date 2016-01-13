@@ -7,6 +7,8 @@ django-unixtimestampfield
 .. image:: https://img.shields.io/pypi/v/django-unixtimestampfield.svg
          :target: https://pypi.python.org/pypi/django-unixtimestampfield/
 
+.. image:: https://coveralls.io/repos/myyang/django-unixtimestampfield/badge.svg?branch=develop&service=github
+        :target: https://coveralls.io/github/myyang/django-unixtimestampfield?branch=develop
 
 Provide a custom field that is stored as float (UTC POSIX timestamp) and used as datetime instance.
 
