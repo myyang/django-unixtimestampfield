@@ -10,8 +10,13 @@ env:
 
 install:
   - pip install -q $DJANGO pytz
+  - pip install coveralls
 
-script: python setup.py test
+script:
+    coverage run --source=unixtimestampfield setup.py test
+
+after_success:
+  coveralls
 
 notifications:
   email:
