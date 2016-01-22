@@ -738,3 +738,53 @@ class TemplateTagsTest(TestCase):
         rendered = self.template.render(Context({'t': t}))
         self.assertIn("Jan. 1, 1970", rendered)
         self.assertIn("0.0", rendered)
+
+
+class SubmiddlewareModel(models.Model):
+
+    datetime = UnixTimeStampField(default=0.0)
+    numeric = UnixTimeStampField(use_numeric=True, default=0.0)
+
+
+class SubmiddlewareTest(TestCase):
+
+    @override_settings(USE_TZ=True, TIME_ZONE='UTC')
+    def test_default(self):
+        t = SubmiddlewareModel.objects.create()
+        expected = timezone.datetime(1970, 1, 1, 0, 0, 0, tzinfo=timezone.utc)
+
+        if hasattr(t, 'refresh_from_db'):
+            t.refresh_from_db()
+        else:
+            t = ForTestModel.objects.get(id=t.id)
+
+        self.assertEqual(t.datetime, expected)
+        self.assertEqual(t.numeric, 0)
+
+    @override_settings(USE_TZ=True, TIME_ZONE='UTC', USF_FORMAT='usf_datetime')
+    def test_datetime(self):
+        t = SubmiddlewareModel.objects.create()
+        expected = timezone.datetime(1970, 1, 1, 0, 0, 0, tzinfo=timezone.utc)
+
+        self.assertEqual(t.datetime, expected)
+        self.assertEqual(t.numeric, expected)
+
+    @override_settings(USE_TZ=True, TIME_ZONE='UTC', USF_FORMAT='usf_timestamp')
+    def test_timestamp(self):
+        t = SubmiddlewareModel.objects.create()
+
+        self.assertEqual(t.datetime, 0)
+        self.assertEqual(t.numeric, 0)
+
+    @override_settings(USE_TZ=True, TIME_ZONE='UTC', USF_FORMAT='invalid')
+    def test_invalid_option(self):
+        t = SubmiddlewareModel.objects.create()
+        expected = timezone.datetime(1970, 1, 1, 0, 0, 0, tzinfo=timezone.utc)
+
+        if hasattr(t, 'refresh_from_db'):
+            t.refresh_from_db()
+        else:
+            t = ForTestModel.objects.get(id=t.id)
+
+        self.assertEqual(t.datetime, expected)
+        self.assertEqual(t.numeric, 0)
