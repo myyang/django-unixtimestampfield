@@ -7,8 +7,8 @@ django-unixtimestampfield
 .. image:: https://img.shields.io/pypi/v/django-unixtimestampfield.svg
          :target: https://pypi.python.org/pypi/django-unixtimestampfield/
 
-.. image:: https://coveralls.io/repos/myyang/django-unixtimestampfield/badge.svg?branch=develop&service=github
-        :target: https://coveralls.io/github/myyang/django-unixtimestampfield?branch=develop
+.. image:: https://coveralls.io/repos/myyang/django-unixtimestampfield/badge.svg?service=github
+        :target: https://coveralls.io/github/myyang/django-unixtimestampfield
 
 Provide a custom field that is stored as float (UTC POSIX timestamp) and used as datetime instance.
 
@@ -156,6 +156,8 @@ Then getting field value what you want:
 
 Version
 -------
+
+*v0.3.8* -- Bugs fixed: Apply submiddleware to auto_now field and check format in submiddleware
 
 *V0.3.7* -- Check minimum value.
 
