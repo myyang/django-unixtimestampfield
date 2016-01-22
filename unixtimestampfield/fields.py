@@ -238,12 +238,11 @@ class UnixTimeStampField(TimestampPatchMixin, Field):
     def pre_save(self, model_instance, add):
         if self.auto_now or (self.auto_now_add and add):
             value = self.get_datetimenow()
-            setattr(model_instance, self.attname, value)
-            return value
         else:
             value = getattr(model_instance, self.attname)
-            setattr(model_instance, self.attname, field_value_middleware(self, value))
-            return value
+
+        setattr(model_instance, self.attname, field_value_middleware(self, value))
+        return value
 
     def to_python(self, value):
         return field_value_middleware(self, value)
