@@ -5,6 +5,9 @@ Sub middleware
 
 release |release|, version |version|
 
+.. versionadded:: 0.3.8
+
+    Bugs fixed: Apply submiddleware to auto_now field and check format in submiddleware
 
 .. versionadded:: 0.3.4
 
