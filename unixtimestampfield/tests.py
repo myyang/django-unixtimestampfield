@@ -209,6 +209,7 @@ class ForTestModel(models.Model):
     created = UnixTimeStampField(auto_now_add=True)
     modified = UnixTimeStampField(auto_now=True)
     str_ini = UnixTimeStampField(default='0.0')
+    str_dt_ini = UnixTimeStampField(default='1970-01-01 00:00:00')
     float_ini = UnixTimeStampField(default=0.0)
     int_ini = UnixTimeStampField(default=0.0)
     dt_ini = UnixTimeStampField(default=unix_0_utc)
@@ -228,6 +229,7 @@ class TimeStampFieldTest(TestCase):
         self.assertGreater(t.created, now)
         self.assertGreater(t.modified, now)
         self.assertEqual(t.str_ini, expected)
+        self.assertEqual(t.str_dt_ini, expected)
         self.assertEqual(t.float_ini, expected)
         self.assertEqual(t.int_ini, expected)
 
@@ -239,6 +241,7 @@ class TimeStampFieldTest(TestCase):
         pre_modified = t.modified
 
         t.str_ini = '3'
+        t.str_dt_ini = '1970-01-01 00:00:03'
         t.float_ini = 3.0
         t.int_ini = 3
         t.dt_ini = timezone.datetime(1970, 1, 1, 0, 0, 3, tzinfo=timezone.utc)
@@ -253,6 +256,7 @@ class TimeStampFieldTest(TestCase):
 
         self.assertGreater(t.modified, pre_modified)
         self.assertEqual(t.str_ini, expected)
+        self.assertEqual(t.str_dt_ini, expected)
         self.assertEqual(t.float_ini, expected)
         self.assertEqual(t.int_ini, expected)
         self.assertEqual(t.use_numeric_field, 3.111112)
@@ -270,6 +274,7 @@ class TimeStampFieldTest(TestCase):
         self.assertGreater(t.created, now)
         self.assertGreater(t.modified, now)
         self.assertEqual(t.str_ini, expected)
+        self.assertEqual(t.str_dt_ini, expected)
         self.assertEqual(t.float_ini, expected)
         self.assertEqual(t.int_ini, expected)
 
@@ -285,6 +290,7 @@ class TimeStampFieldTest(TestCase):
         pre_modified = t.modified
 
         t.str_ini = '3'
+        t.str_dt_ini = '1970-01-01 00:00:03'
         t.float_ini = 3.0
         t.int_ini = 3
         t.dt_ini = timezone.datetime.fromtimestamp(3.0, timezone.pytz.timezone('Asia/Taipei'))
@@ -299,6 +305,7 @@ class TimeStampFieldTest(TestCase):
 
         self.assertGreater(t.modified, pre_modified)
         self.assertEqual(t.str_ini, expected)
+        self.assertEqual(t.str_dt_ini, expected)
         self.assertEqual(t.float_ini, expected)
         self.assertEqual(t.int_ini, expected)
         self.assertEqual(t.use_numeric_field, 3.111112)
@@ -313,6 +320,7 @@ class TimeStampFieldTest(TestCase):
         self.assertGreater(t.created, now)
         self.assertGreater(t.modified, now)
         self.assertEqual(t.str_ini, expected)
+        self.assertEqual(t.str_dt_ini, expected)
         self.assertEqual(t.float_ini, expected)
         self.assertEqual(t.int_ini, expected)
 
@@ -324,6 +332,7 @@ class TimeStampFieldTest(TestCase):
         pre_modified = t.modified
 
         t.str_ini = '3'
+        t.str_dt_ini = '1970-01-01 00:00:03'
         t.float_ini = 3.0
         t.int_ini = 3
         t.dt_ini = timezone.datetime.fromtimestamp(3.0)
@@ -336,6 +345,7 @@ class TimeStampFieldTest(TestCase):
 
         self.assertGreater(t.modified, pre_modified)
         self.assertEqual(t.str_ini, expected)
+        self.assertEqual(t.str_dt_ini, expected)
         self.assertEqual(t.float_ini, expected)
         self.assertEqual(t.int_ini, expected)
 
