@@ -157,6 +157,8 @@ Then getting field value what you want:
 Version
 -------
 
+*v0.3.8* -- Bugs fixed: Apply submiddleware to auto_now field and check format in submiddleware
+
 *V0.3.7* -- Check minimum value.
 
 *V0.3.6* -- Fix timezone problem. All records are stored UTC timezone and convert while retrive.

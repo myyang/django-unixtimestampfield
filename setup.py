@@ -38,7 +38,7 @@ class TestCommand(Command):
 
 
 setup(name='django-unixtimestampfield',
-      version='0.3.7',
+      version='0.3.8',
       packages=['unixtimestampfield'],
       license='MIT',
       author='Garfield.Yang',
@@ -55,6 +55,7 @@ setup(name='django-unixtimestampfield',
           'Programming Language :: Python',
           'Programming Language :: Python :: 2.7',
           'Programming Language :: Python :: 3.4',
+          'Programming Language :: Python :: 3.5',
           'Framework :: Django',
       ],
       )
