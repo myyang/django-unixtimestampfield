@@ -157,6 +157,8 @@ Then getting field value what you want:
 Version
 -------
 
+*v0.3.9* -- Fix packages including in setup.py
+
 *v0.3.8* -- Bugs fixed: Apply submiddleware to auto_now field and check format in submiddleware
 
 *V0.3.7* -- Check minimum value.
