@@ -42,7 +42,7 @@ class TestCommand(Command):
 
 
 setup(name='django-unixtimestampfield',
-      version='0.3.8',
+      version='0.3.9',
       packages=find_packages(),
       license='MIT',
       author='Garfield.Yang',
