@@ -1,5 +1,9 @@
+try:
+    from setuptools import setup, find_packages
+except ImportError:
+    from distutils.core import setup, find_packages
+
 from distutils.core import Command
-from setuptools import setup
 
 """
 Copied and stole from https://github.com/bradjasper/django-jsonfield/blob/master/setup.py
@@ -38,8 +42,8 @@ class TestCommand(Command):
 
 
 setup(name='django-unixtimestampfield',
-      version='0.3.8',
-      packages=['unixtimestampfield'],
+      version='0.3.9',
+      packages=find_packages(),
       license='MIT',
       author='Garfield.Yang',
       author_email='ymy1019@gmail.com',
