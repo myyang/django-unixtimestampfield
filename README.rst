@@ -13,17 +13,23 @@ django-unixtimestampfield
 Provide a custom field that is stored as float (UTC POSIX timestamp) and used as datetime instance.
 
 
-Requirements
-------------
+Requirements and Compatibility
+------------------------------
 
-* Database that supports **Float** type is compatible
-* Python2.7, 3.4 with Django 1.8, 1.9
+Database that supports **Float** type is compatible.
   
-**Note**: Since the 1.8 is LTS version, I choose to support from 1.8. 
-`SubClassing will be removed in 2.0`_ , so I handle *from_db_value()* only.
-If you could help version <= 1.7, welcome~~ :D
+Currently tested with metrics:
 
-.. _`SubClassing will be removed in 2.0`: https://github.com/django/django/blob/1.8/django/db/models/fields/subclassing.py#L21
++---------------+-----+-----+-----+-----+
+| Django/Python | 3.5 | 3.6 | 3.7 | 3.8 |
++---------------+-----+-----+-----+-----+
+| 2.2.x         |  v  |  v  |  v  |     |
++---------------+-----+-----+-----+-----+
+| 3.0.x         |     |  v  |  v  |  v  |
++---------------+-----+-----+-----+-----+
+
+* Note: for Python2 and Django1.X, please use v0.3.9 or previous version.
+
 
 Install
 -------

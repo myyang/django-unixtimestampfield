@@ -38,6 +38,13 @@ class TestCommand(Command):
             },
             INSTALLED_APPS=[
                 'unixtimestampfield',
+            ],
+            TEMPLATES=[
+                {
+                    'BACKEND': 'django.template.backends.django.DjangoTemplates',
+                    'DIRS': [],
+                    'APP_DIRS': True,
+                },
             ]
         )
         apps.populate(settings.INSTALLED_APPS)
@@ -48,7 +55,7 @@ class TestCommand(Command):
         tr = get_runner(settings)()
         failures = tr.run_tests(['unixtimestampfield', ])
         if failures:
-                sys.exit(bool(failures))
+            sys.exit(bool(failures))
 
 
 setup(name='django-unixtimestampfield',
