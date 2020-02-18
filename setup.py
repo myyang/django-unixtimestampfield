@@ -38,7 +38,14 @@ class TestCommand(Command):
             },
             INSTALLED_APPS=[
                 'unixtimestampfield',
-            ]
+            ],
+			TEMPLATES=[
+				{
+					'BACKEND': 'django.template.backends.django.DjangoTemplates',
+					'DIRS': [],
+					'APP_DIRS': True,
+				},
+			]
         )
         apps.populate(settings.INSTALLED_APPS)
 
