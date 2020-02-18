@@ -276,7 +276,7 @@ class UnixTimeStampField(TimestampPatchMixin, Field):
             value = self.get_prep_value(value)
         return self.to_timestamp(value)
 
-    def from_db_value(self, value, expression, connection, context):
+    def from_db_value(self, value, expression, connection):
         return field_value_middleware(self, value)
 
     def to_timestamp(self, value):
