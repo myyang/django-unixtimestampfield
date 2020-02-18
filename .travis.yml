@@ -31,7 +31,7 @@ jobs:
       env: DJANGO=2.2.9
 
 install:
-  - pip install -q $DJANGO pytz
+  - pip install django==$DJANGO
   - pip install six
   - pip install coveralls
 
