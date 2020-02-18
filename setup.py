@@ -6,7 +6,9 @@ except ImportError:
 from distutils.core import Command
 
 """
-Copied and stole from https://github.com/bradjasper/django-jsonfield/blob/master/setup.py
+Copied and stole from
+1. https://github.com/bradjasper/django-jsonfield/blob/master/setup.py
+2. http://stackoverflow.com/a/3851333
 """
 
 
@@ -25,20 +27,28 @@ class TestCommand(Command):
 
     def run(self):
         from django.conf import settings
+        from django.apps import apps
+
         settings.configure(
             DATABASES={
-                'default': {'NAME': ':memory:', 'ENGINE': 'django.db.backends.sqlite3'}},
-            INSTALLED_APPS=('unixtimestampfield',)
+                'default': {
+                    'NAME': ':memory:',
+                    'ENGINE': 'django.db.backends.sqlite3',
+                },
+            },
+            INSTALLED_APPS=[
+                'unixtimestampfield',
+            ]
         )
-        from django.core.management import call_command
-        import django
+        apps.populate(settings.INSTALLED_APPS)
 
-        if django.VERSION[:2] < (1, 8):
-            raise DjangoVerionError("Django version should be at least 1.8")
+        import sys
+        from django.test.utils import get_runner
 
-        if django.VERSION[:2] >= (1, 8):
-            django.setup()
-        call_command('test', 'unixtimestampfield')
+        tr = get_runner(settings)()
+        failures = tr.run_tests(['unixtimestampfield', ])
+        if failures:
+                sys.exit(bool(failures))
 
 
 setup(name='django-unixtimestampfield',
