@@ -42,7 +42,7 @@ class TestCommand(Command):
 
 
 setup(name='django-unixtimestampfield',
-      version='0.3.9',
+      version='0.4.0',
       packages=find_packages(),
       license='MIT',
       author='Garfield.Yang',
@@ -51,7 +51,7 @@ setup(name='django-unixtimestampfield',
       description='Django Unix timestamp (POSIX type) field',
       long_description=open("README.rst").read(),
       cmdclass={'test': TestCommand},
-      install_requires=['django>=1.8', ],
+      install_requires=['django>=1.8', 'six>=1.14.0', ],
       classifiers=[
           'Development Status :: 4 - Beta',
           'License :: OSI Approved :: MIT License',
