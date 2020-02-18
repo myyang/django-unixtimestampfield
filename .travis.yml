@@ -1,15 +1,23 @@
 language: python
 python:
-  - 2.7
-  - 3.4
   - 3.5
+  - 3.6
+  - 3.7
+  - 3.8
 
 env:
-  - DJANGO='django>=1.8,<1.9'
-  - DJANGO='django>=1.9'
+  - DJANGO=2.2.9
+  - DJANGO=3.0.1
+
+jobs:
+  exclude:
+    - python: 3.5
+      env: DJANGO=3.0.1
+    - python: 3.8
+      env: DJANGO=2.2.9
 
 install:
-  - pip install -q $DJANGO pytz
+  - pip install -q django==$DJANGO pytz
   - pip install coveralls
 
 script:
