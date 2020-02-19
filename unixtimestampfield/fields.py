@@ -5,6 +5,10 @@ UnixTimeStampField
 
 release |release|, version |version|
 
+.. versionadded:: 0.4.0
+
+    Import Six library from https://pypi.org/project/six/.
+
 .. versionadded:: 0.3.7
 
     Check minimum value.
@@ -62,7 +66,7 @@ from django.core import exceptions
 from django.conf import settings
 from django.forms import fields
 
-from django.utils import six
+import six
 from django.utils.translation import ugettext_lazy as _
 
 from .submiddleware import field_value_middleware
@@ -272,7 +276,7 @@ class UnixTimeStampField(TimestampPatchMixin, Field):
             value = self.get_prep_value(value)
         return self.to_timestamp(value)
 
-    def from_db_value(self, value, expression, connection, context):
+    def from_db_value(self, value, expression, connection):
         return field_value_middleware(self, value)
 
     def to_timestamp(self, value):
