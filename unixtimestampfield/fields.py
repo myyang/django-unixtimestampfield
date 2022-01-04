@@ -67,7 +67,6 @@ from django.conf import settings
 from django.forms import fields
 
 import six
-from django.utils.translation import ugettext_lazy as _
 
 from .submiddleware import field_value_middleware
 
@@ -214,7 +213,7 @@ class UnixTimeStampField(TimestampPatchMixin, Field):
 
     """
     empty_strings_allowed = False
-    description = _("Unix POSIX timestamp")
+    description = "Unix POSIX timestamp"
 
     def __init__(self, verbose_name=None, name=None, auto_now=False,
                  auto_now_add=False, round_to=6, use_numeric=False, **kwargs):
@@ -384,7 +383,7 @@ class OrdinalField(OrdinalPatchMixin, UnixTimeStampField):
 
     """
     empty_strings_allowed = False
-    description = _("Ordinal timestamp")
+    description = "Ordinal timestamp"
 
     def __init__(self, verbose_name=None, name=None, auto_now=False,
                  auto_now_add=False, use_numeric=False, **kwargs):
