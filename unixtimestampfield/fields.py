@@ -83,7 +83,7 @@ class TimestampPatchMixin(object):
 
         # stole from https://docs.python.org/3/library/datetime.html#datetime.datetime.timestamp
         if timezone.is_aware(v):
-            return (v - timezone.datetime(1970, 1, 1, tzinfo=timezone.utc)).total_seconds()
+            return (v - timezone.datetime(1970, 1, 1, tzinfo=datetime.timezone.utc)).total_seconds()
         else:
             return (v - timezone.datetime(1970, 1, 1)).total_seconds()
 
@@ -94,7 +94,7 @@ class TimestampPatchMixin(object):
         value = timezone.datetime.utcnow()
         if settings.USE_TZ:
             value = timezone.localtime(
-                timezone.make_aware(value, timezone.utc),
+                timezone.make_aware(value, datetime.timezone.utc),
                 timezone.get_default_timezone()
             )
         return value
@@ -160,9 +160,9 @@ class TimestampPatchMixin(object):
         value = self.to_naive_datetime(value)
 
         if timezone.is_naive(value):
-            value = timezone.make_aware(value, timezone.utc)
+            value = timezone.make_aware(value, datetime.timezone.utc)
         else:
-            value = timezone.localtime(value, timezone.utc)
+            value = timezone.localtime(value, datetime.timezone.utc)
         return value
 
     def to_default_timezone_datetime(self, value):
@@ -304,7 +304,7 @@ class OrdinalPatchMixin(TimestampPatchMixin):
         value = timezone.datetime.fromordinal(timezone.datetime.utcnow().toordinal())
         if settings.USE_TZ:
             value = timezone.localtime(
-                timezone.make_aware(value, timezone.utc),
+                timezone.make_aware(value, datetime.timezone.utc),
                 timezone.get_default_timezone()
             )
         return value
@@ -321,7 +321,7 @@ class OrdinalPatchMixin(TimestampPatchMixin):
 
         if isinstance(value, datetime.datetime):
             if timezone.is_aware(value):
-                value = timezone.localtime(value, timezone.utc)
+                value = timezone.localtime(value, datetime.timezone.utc)
             return self._datetime_to_timestamp(value)
 
         raise exceptions.ValidationError(
@@ -356,9 +356,9 @@ class OrdinalPatchMixin(TimestampPatchMixin):
 
         if isinstance(value, datetime.datetime):
             if timezone.is_naive(value):
-                value = timezone.make_aware(value, timezone.utc)
+                value = timezone.make_aware(value, datetime.timezone.utc)
             else:
-                value = timezone.localtime(value, timezone.utc)
+                value = timezone.localtime(value, datetime.timezone.utc)
             return value
 
         raise exceptions.ValidationError(

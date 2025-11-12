@@ -1,4 +1,6 @@
 import logging
+import datetime
+from zoneinfo import ZoneInfo
 
 from django.test import TestCase, override_settings
 
@@ -11,10 +13,10 @@ from django.template import Template, Context
 from .fields import UnixTimeStampField, OrdinalField, TimestampPatchMixin, OrdinalPatchMixin
 
 unix_0 = timezone.datetime(1970, 1, 1)
-unix_0_utc = timezone.datetime(1970, 1, 1, tzinfo=timezone.utc)
+unix_0_utc = timezone.datetime(1970, 1, 1, tzinfo=datetime.timezone.utc)
 
 ordinal_1 = timezone.datetime.fromordinal(1)
-ordinal_1_utc = timezone.make_aware(timezone.datetime.fromordinal(1), timezone.utc)
+ordinal_1_utc = timezone.make_aware(timezone.datetime.fromordinal(1), datetime.timezone.utc)
 
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)
@@ -23,16 +25,16 @@ LOGGER.setLevel(logging.DEBUG)
 
 class MixinTest(TestCase):
 
-    zero_utc = timezone.datetime(1970, 1, 1, 0, 0,  tzinfo=timezone.utc)
+    zero_utc = timezone.datetime(1970, 1, 1, 0, 0,  tzinfo=datetime.timezone.utc)
     oneyear_utc = timezone.datetime(
-        1971, 1, 1, 1, 1, 1, 123400, tzinfo=timezone.utc)  # 31539661.123400
-    oneyear_utc_i = timezone.datetime(1971, 1, 1, 1, 1, 1,  tzinfo=timezone.utc)  # 31539661.0
+        1971, 1, 1, 1, 1, 1, 123400, tzinfo=datetime.timezone.utc)  # 31539661.123400
+    oneyear_utc_i = timezone.datetime(1971, 1, 1, 1, 1, 1,  tzinfo=datetime.timezone.utc)  # 31539661.0
     zero = timezone.datetime(1970, 1, 1, 0, 0)
     oneyear = timezone.datetime(1971, 1, 1, 1, 1, 1, 123400)
     oneyear_i = timezone.datetime(1971, 1, 1, 1, 1, 1)
     negyear_utc = timezone.datetime(
-        1969, 1, 1, 1, 1, 1, 123400, tzinfo=timezone.utc)  # -31532338.8766
-    negyear_utc_i = timezone.datetime(1969, 1, 1, 1, 1, 1, tzinfo=timezone.utc)  # -31532339
+        1969, 1, 1, 1, 1, 1, 123400, tzinfo=datetime.timezone.utc)  # -31532338.8766
+    negyear_utc_i = timezone.datetime(1969, 1, 1, 1, 1, 1, tzinfo=datetime.timezone.utc)  # -31532339
 
     @override_settings(USE_TZ=True, TIME_ZONE='UTC')
     def test_to_timestamp_utc(self):
@@ -223,7 +225,7 @@ class TimeStampFieldTest(TestCase):
     @override_settings(USE_TZ=True, TIME_ZONE='UTC')
     def test_init_with_use_tz(self):
         now = timezone.now()
-        expected = timezone.datetime(1970, 1, 1, tzinfo=timezone.utc)
+        expected = timezone.datetime(1970, 1, 1, tzinfo=datetime.timezone.utc)
         t = ForTestModel.objects.create()
 
         self.assertGreater(t.created, now)
@@ -235,7 +237,7 @@ class TimeStampFieldTest(TestCase):
 
     @override_settings(USE_TZ=True, TIME_ZONE='UTC')
     def test_assignment_with_tz(self):
-        expected = timezone.datetime(1970, 1, 1, 0, 0, 3, tzinfo=timezone.utc)
+        expected = timezone.datetime(1970, 1, 1, 0, 0, 3, tzinfo=datetime.timezone.utc)
         t = ForTestModel.objects.create()
 
         pre_modified = t.modified
@@ -244,7 +246,7 @@ class TimeStampFieldTest(TestCase):
         t.str_dt_ini = '1970-01-01 00:00:03'
         t.float_ini = 3.0
         t.int_ini = 3
-        t.dt_ini = timezone.datetime(1970, 1, 1, 0, 0, 3, tzinfo=timezone.utc)
+        t.dt_ini = timezone.datetime(1970, 1, 1, 0, 0, 3, tzinfo=datetime.timezone.utc)
         t.use_numeric_field = 3.1111116
         t.round_3_field = 3.1116
         t.save()
@@ -265,9 +267,10 @@ class TimeStampFieldTest(TestCase):
     @override_settings(USE_TZ=True, TIME_ZONE='Asia/Taipei')
     def test_init_with_different_tz(self):
         now = timezone.now()
+        target_timezone = ZoneInfo('Asia/Taipei')
         expected = timezone.localtime(
-            timezone.datetime(1970, 1, 1, tzinfo=timezone.utc),
-            timezone.pytz.timezone('Asia/Taipei')
+            timezone.datetime(1970, 1, 1, tzinfo=datetime.timezone.utc),
+            target_timezone
         )
         t = ForTestModel.objects.create()
 
@@ -280,9 +283,10 @@ class TimeStampFieldTest(TestCase):
 
     @override_settings(USE_TZ=True, TIME_ZONE='Asia/Taipei')
     def test_assignment_with_different_tz(self):
+        target_timezone = ZoneInfo('Asia/Taipei')
         expected = timezone.localtime(
-            timezone.datetime(1970, 1, 1, 0, 0, 3, tzinfo=timezone.utc),
-            timezone.pytz.timezone('Asia/Taipei')
+            timezone.datetime(1970, 1, 1, 0, 0, 3, tzinfo=datetime.timezone.utc),
+            target_timezone
         )
 
         t = ForTestModel.objects.create()
@@ -293,7 +297,7 @@ class TimeStampFieldTest(TestCase):
         t.str_dt_ini = '1970-01-01 00:00:03'
         t.float_ini = 3.0
         t.int_ini = 3
-        t.dt_ini = timezone.datetime.fromtimestamp(3.0, timezone.pytz.timezone('Asia/Taipei'))
+        t.dt_ini = timezone.datetime.fromtimestamp(3.0, target_timezone)
         t.use_numeric_field = 3.1111116
         t.round_3_field = 3.1116
         t.save()
@@ -460,8 +464,8 @@ class FormFieldTest(TestCase):
 
 class OrdMixinTest(TestCase):
 
-    zero_utc = timezone.datetime(1, 1, 1, 0, 0,  tzinfo=timezone.utc)
-    oneyear_utc = timezone.datetime(1, 12, 31, 0, 0, tzinfo=timezone.utc)  # 365
+    zero_utc = timezone.datetime(1, 1, 1, 0, 0,  tzinfo=datetime.timezone.utc)
+    oneyear_utc = timezone.datetime(1, 12, 31, 0, 0, tzinfo=datetime.timezone.utc)  # 365
     zero = timezone.datetime(1, 1, 1, 0, 0)
     oneyear = timezone.datetime(1, 12, 31, 0, 0)  # 365
 
@@ -639,8 +643,8 @@ class OrdinalFieldTest(TestCase):
     @override_settings(USE_TZ=True, TIME_ZONE='UTC')
     def test_init_with_utc(self):
         today = timezone.make_aware(
-            timezone.datetime.fromordinal(timezone.now().toordinal()), timezone.utc)
-        expected = timezone.make_aware(timezone.datetime.fromordinal(1), timezone.utc)
+            timezone.datetime.fromordinal(timezone.now().toordinal()), datetime.timezone.utc)
+        expected = timezone.make_aware(timezone.datetime.fromordinal(1), datetime.timezone.utc)
         m = ForOrdinalTestModel.objects.create()
 
         self.assertEqual(m.created, today)
@@ -653,14 +657,14 @@ class OrdinalFieldTest(TestCase):
     @override_settings(USE_TZ=True, TIME_ZONE='UTC')
     def test_assignment_with_tz(self):
         today = timezone.make_aware(
-            timezone.datetime.fromordinal(timezone.now().toordinal()), timezone.utc)
-        expected = timezone.make_aware(timezone.datetime.fromordinal(3), timezone.utc)
+            timezone.datetime.fromordinal(timezone.now().toordinal()), datetime.timezone.utc)
+        expected = timezone.make_aware(timezone.datetime.fromordinal(3), datetime.timezone.utc)
         m = ForOrdinalTestModel.objects.create()
 
         m.str_ini = '3'
         m.float_ini = 3.0
         m.int_ini = 3
-        m.dt_ini = timezone.make_aware(timezone.datetime.fromordinal(3), timezone.utc)
+        m.dt_ini = timezone.make_aware(timezone.datetime.fromordinal(3), datetime.timezone.utc)
         m.save()
 
         if hasattr(m, 'refresh_from_db'):
@@ -676,10 +680,11 @@ class OrdinalFieldTest(TestCase):
     @override_settings(USE_TZ=True, TIME_ZONE='Asia/Taipei')
     def test_init_with_different_tz(self):
         today = timezone.make_aware(
-            timezone.datetime.fromordinal(timezone.now().toordinal()), timezone.utc)
+            timezone.datetime.fromordinal(timezone.now().toordinal()), datetime.timezone.utc)
+        target_timezone = ZoneInfo('Asia/Taipei')
         expected = timezone.localtime(
-            timezone.make_aware(timezone.datetime.fromordinal(1), timezone.utc),
-            timezone.pytz.timezone('Asia/Taipei')
+            timezone.make_aware(timezone.datetime.fromordinal(1), datetime.timezone.utc),
+            target_timezone
         )
         m = ForOrdinalTestModel.objects.create()
 
@@ -761,7 +766,7 @@ class SubmiddlewareTest(TestCase):
     @override_settings(USE_TZ=True, TIME_ZONE='UTC')
     def test_default(self):
         t = SubmiddlewareModel.objects.create()
-        expected = timezone.datetime(1970, 1, 1, 0, 0, 0, tzinfo=timezone.utc)
+        expected = timezone.datetime(1970, 1, 1, 0, 0, 0, tzinfo=datetime.timezone.utc)
 
         if hasattr(t, 'refresh_from_db'):
             t.refresh_from_db()
@@ -774,7 +779,7 @@ class SubmiddlewareTest(TestCase):
     @override_settings(USE_TZ=True, TIME_ZONE='UTC', USF_FORMAT='usf_datetime')
     def test_datetime(self):
         t = SubmiddlewareModel.objects.create()
-        expected = timezone.datetime(1970, 1, 1, 0, 0, 0, tzinfo=timezone.utc)
+        expected = timezone.datetime(1970, 1, 1, 0, 0, 0, tzinfo=datetime.timezone.utc)
 
         self.assertEqual(t.datetime, expected)
         self.assertEqual(t.numeric, expected)
@@ -789,7 +794,7 @@ class SubmiddlewareTest(TestCase):
     @override_settings(USE_TZ=True, TIME_ZONE='UTC', USF_FORMAT='invalid')
     def test_invalid_option(self):
         t = SubmiddlewareModel.objects.create()
-        expected = timezone.datetime(1970, 1, 1, 0, 0, 0, tzinfo=timezone.utc)
+        expected = timezone.datetime(1970, 1, 1, 0, 0, 0, tzinfo=datetime.timezone.utc)
 
         if hasattr(t, 'refresh_from_db'):
             t.refresh_from_db()

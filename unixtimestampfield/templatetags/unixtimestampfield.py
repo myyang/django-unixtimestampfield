@@ -27,6 +27,7 @@ Members
 
 """
 import time
+import datetime
 
 from django.template import Library
 from django.utils import timezone
@@ -39,7 +40,7 @@ register = Library()
 def to_datetime(field):
     try:
         if type(field) in (float, str):
-            field = timezone.datetime.fromtimestamp(field, timezone.utc)
+            field = timezone.datetime.fromtimestamp(field, datetime.timezone.utc)
             if settings.USE_TZ:
                 field = timezone.localtime(field, timezone.get_default_timezone())
         return field
@@ -52,7 +53,7 @@ def to_timestamp(field):
     try:
         if type(field) == timezone.datetime:
             if settings.USE_TZ and timezone.is_aware(field):
-                field = timezone.localtime(field, timezone.utc)
+                field = timezone.localtime(field, datetime.timezone.utc)
             # Py2 doesn't supports timestamp()
             if hasattr(field, 'timestamp'):
                 return field.timestamp()
