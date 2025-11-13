@@ -59,16 +59,16 @@ class TestCommand(Command):
 
 
 setup(name='django-unixtimestampfield',
-      version='0.4.0',
+      version='1.0.2',
       packages=find_packages(),
       license='MIT',
-      author='Garfield.Yang',
-      author_email='ymy1019@gmail.com',
+      author='Dr. Sougata Pal',
+      author_email='skall.paul@techunits.com',
       url='https://github.com/myyang/django-unixtimestampfield',
       description='Django Unix timestamp (POSIX type) field',
       long_description=open("README.rst").read(),
       cmdclass={'test': TestCommand},
-      install_requires=['django>=2.2', 'six>=1.14.0', ],
+      install_requires=['django>=4.0', 'six>=1.14.0', ],
       classifiers=[
           'Development Status :: 4 - Beta',
           'License :: OSI Approved :: MIT License',
