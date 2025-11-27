@@ -184,9 +184,9 @@ class TimestampPatchMixin(object):
     def datetime_str_to_datetime(self, value):
         try:
             if value.find('.') >= 0:
-                return timezone.datetime.strptime(value, '%Y-%m-%d %H:%M:%S.%f')
+                return timezone.datetime.strptime(value, '%Y-%m-%dT%H:%M:%S.%fZ')
             else:
-                return timezone.datetime.strptime(value, '%Y-%m-%d %H:%M:%S')
+                return timezone.datetime.strptime(value, '%Y-%m-%dT%H:%M:%SZ')
         except:
             raise exceptions.ValidationError(
                 "Unable to convert value: '%s' to datetime, "
